@@ -2,531 +2,923 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MoveMatch — Compare Verified Movers & Get Instant Moving Quotes</title>
-<meta name="description" content="MoveMatch connects you with verified moving companies, packers and storage providers across the US. Get instant quotes, build your inventory and book with confidence.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MoveMatch — Compare Trusted Movers & Free Moving Quotes</title>
+<meta name="description" content="Compare trusted moving professionals, receive competitive quotes and manage your relocation with confidence. Local, long-distance, commercial, packing and storage.">
+<meta property="og:title" content="MoveMatch — Your Next Move Starts With a Better Match">
+<meta property="og:description" content="Compare trusted movers and get free moving quotes.">
+<meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"MoveMatch","description":"Moving marketplace connecting customers with moving professionals"}</script>
 <style>
 :root{
-  --bg:#070b16;--bg2:#0d1426;--card:#111a31;--line:rgba(255,255,255,.08);
-  --txt:#e9eefc;--mut:#94a0bf;--a:#ff6b2c;--b:#7c5cff;--c:#19d3c5;
-  --grad:linear-gradient(120deg,#ff6b2c,#ff3d7f 45%,#7c5cff);
-  --r:20px;
+ --navy:#102A43;--teal:#14B8A6;--amber:#F4B740;
+ --n0:#FFFFFF;--n1:#F5F7FA;--n2:#EAF0F5;--n3:#D9E2EC;--n4:#9FB3C8;--n5:#52606D;--n6:#334E68;--n7:#172B4D;
+ --ok:#15803D;--warn:#B45309;--err:#B42318;--info:#175CD3;
+ --tealD:#0F8F81;
+ --r:14px;--sh:0 1px 2px rgba(16,42,67,.06),0 8px 24px rgba(16,42,67,.08);--shH:0 2px 4px rgba(16,42,67,.08),0 18px 40px rgba(16,42,67,.14);
+ --t1:150ms;--t2:240ms;--t3:320ms;--t4:520ms;--ease:cubic-bezier(.2,.8,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--txt);overflow-x:hidden;line-height:1.6}
-h1,h2,h3,h4{font-family:"Space Grotesk",sans-serif;line-height:1.15}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{font:16px/1.6 Inter,system-ui,sans-serif;color:var(--n7);background:var(--n0)}
+h1,h2,h3,h4{font-family:Manrope,Inter,sans-serif;color:var(--navy);line-height:1.15;letter-spacing:-.01em}
 a{color:inherit;text-decoration:none}
-button{font:inherit;cursor:pointer}
-.wrap{width:min(1200px,92%);margin:auto}
-.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.9rem 1.5rem;border-radius:999px;border:0;font-weight:600;transition:.3s}
-.btn-p{background:var(--grad);color:#fff;box-shadow:0 10px 30px -10px #ff3d7f}
-.btn-p:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 18px 40px -10px #ff3d7f}
-.btn-g{background:rgba(255,255,255,.06);color:var(--txt);border:1px solid var(--line)}
-.btn-g:hover{background:rgba(255,255,255,.12)}
-.tag{display:inline-block;padding:.35rem .9rem;border-radius:999px;background:rgba(124,92,255,.15);color:#b9a8ff;font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border:1px solid rgba(124,92,255,.3)}
-section{padding:110px 0;position:relative}
-.sec-h{text-align:center;max-width:720px;margin:0 auto 60px}
-.sec-h h2{font-size:clamp(2rem,4vw,3rem);margin:.8rem 0}
-.sec-h p{color:var(--mut)}
+button,input,select,textarea{font:inherit;color:inherit}
+img,svg{display:block;max-width:100%}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px;border-radius:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.skip{position:absolute;left:-999px;top:8px;background:var(--navy);color:#fff;padding:8px 16px;z-index:999;border-radius:8px}.skip:focus{left:8px}
+.wrap{width:min(1280px,100% - 40px);margin:auto}
+section{padding:96px 0}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--tealD)}
+.h2{font-size:clamp(28px,3.4vw,40px);margin:8px 0 12px}
+.lead{color:var(--n5);font-size:18px;max-width:640px}
+.sh{margin-bottom:48px}.sh.c{text-align:center}.sh.c .lead{margin:auto}
+.alt{background:var(--n1)}
 
-/* progress + cursor glow */
-#prog{position:fixed;top:0;left:0;height:3px;background:var(--grad);z-index:200;width:0}
-#glow{position:fixed;width:500px;height:500px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(124,92,255,.13),transparent 60%);transform:translate(-50%,-50%);z-index:0;transition:opacity .3s}
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border-radius:10px;border:2px solid transparent;font-weight:600;cursor:pointer;transition:background var(--t1),transform var(--t1),box-shadow var(--t2),border-color var(--t1)}
+.btn:active{transform:scale(.97)}
+.btn-p{background:var(--teal);color:var(--navy)}.btn-p:hover{background:#2cc9b7;box-shadow:0 6px 18px rgba(20,184,166,.35)}
+.btn-s{background:var(--navy);color:#fff}.btn-s:hover{background:var(--n7)}
+.btn-o{border-color:var(--n3);background:#fff;color:var(--navy)}.btn-o:hover{border-color:var(--navy)}
+.btn-g{background:none;color:var(--navy)}.btn-g:hover{background:var(--n2)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn.loading{pointer-events:none;color:transparent;position:relative}
+.btn.loading::after{content:"";position:absolute;width:20px;height:20px;border:3px solid var(--navy);border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* nav */
-nav{position:fixed;inset:0 0 auto;z-index:100;transition:.35s}
-nav.s{background:rgba(7,11,22,.8);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
-.nav-in{display:flex;align-items:center;justify-content:space-between;height:76px}
-.logo{display:flex;align-items:center;gap:.6rem;font-family:"Space Grotesk";font-weight:700;font-size:1.4rem}
-.logo i{width:38px;height:38px;border-radius:11px;background:var(--grad);display:grid;place-items:center;font-style:normal;animation:spin 8s linear infinite}
-@keyframes spin{50%{transform:rotate(8deg) scale(1.05)}}
-.links{display:flex;gap:2rem}
-.links a{color:var(--mut);font-weight:500;position:relative}
-.links a::after{content:"";position:absolute;left:0;bottom:-6px;height:2px;width:0;background:var(--grad);transition:.3s}
-.links a:hover{color:#fff}.links a:hover::after{width:100%}
-.burger{display:none;background:none;border:0;color:#fff;font-size:1.6rem}
+/* announcement */
+.ann{background:var(--navy);color:#fff;font-size:14px}
+.ann .wrap{display:flex;align-items:center;justify-content:center;gap:12px;min-height:42px;padding:6px 0;text-align:center}
+.ann a{color:var(--amber);font-weight:600;text-decoration:underline}
+.ann button{background:none;border:0;color:var(--n4);font-size:20px;cursor:pointer;margin-left:auto;width:32px;height:32px}
+.ann.hide{display:none}
+
+/* header */
+header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--n3);transition:box-shadow var(--t2)}
+header.scr{box-shadow:var(--sh)}
+.hd{display:flex;align-items:center;height:76px;gap:24px;transition:height var(--t2) var(--ease)}
+header.scr .hd{height:64px}
+.logo{display:flex;align-items:center;gap:10px;font:800 22px Manrope,Inter,sans-serif;color:var(--navy)}
+.logo-m{width:36px;height:36px;border-radius:9px;background:var(--navy);display:grid;place-items:center}
+.nav{display:flex;gap:2px;margin-left:16px}
+.nav>li{list-style:none;position:relative}
+.nav>li>button,.nav>li>a{display:flex;align-items:center;gap:6px;height:44px;padding:0 14px;border-radius:8px;background:none;border:0;font-weight:500;color:var(--n6);cursor:pointer;transition:background var(--t1),color var(--t1)}
+.nav>li>button:hover,.nav>li>button[aria-expanded=true]{background:var(--n2);color:var(--navy)}
+.nav .car{transition:transform var(--t2)}
+.nav button[aria-expanded=true] .car{transform:rotate(180deg)}
+.mega{position:absolute;top:calc(100% + 10px);left:0;background:#fff;border:1px solid var(--n3);border-radius:var(--r);box-shadow:var(--shH);padding:24px;display:grid;gap:28px;opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity var(--t2),transform var(--t2) var(--ease),visibility var(--t2);min-width:520px}
+.mega.open{opacity:1;visibility:visible;transform:none}
+.mega h4{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--n5);font-family:Inter;margin-bottom:10px}
+.mega a{display:block;padding:7px 10px;margin:0 -10px;border-radius:8px;color:var(--n7);font-size:15px;transition:background var(--t1),padding var(--t1)}
+.mega a:hover,.mega a:focus-visible{background:var(--n1);padding-left:14px;color:var(--navy)}
+.m4{grid-template-columns:repeat(4,minmax(150px,1fr));min-width:760px}
+.m3{grid-template-columns:repeat(3,minmax(150px,1fr))}
+.m2{grid-template-columns:repeat(2,minmax(180px,1fr))}
+.hd-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.burger{display:none;width:44px;height:44px;border:1px solid var(--n3);border-radius:10px;background:#fff;cursor:pointer}
+
+/* drawer */
+.drawer{position:fixed;inset:0;z-index:90;visibility:hidden}
+.drawer.open{visibility:visible}
+.drawer .bd{position:absolute;inset:0;background:rgba(16,42,67,.5);opacity:0;transition:opacity var(--t3)}
+.drawer.open .bd{opacity:1}
+.drawer .pn{position:absolute;right:0;top:0;bottom:0;width:min(400px,90%);background:#fff;padding:20px;overflow:auto;transform:translateX(100%);transition:transform var(--t3) var(--ease)}
+.drawer.open .pn{transform:none}
+.drawer details{border-bottom:1px solid var(--n3)}
+.drawer summary{padding:16px 4px;font-weight:600;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between}
+.drawer summary::after{content:"+";font-size:20px}.drawer details[open] summary::after{content:"–"}
+.drawer details a{display:block;padding:10px 12px;color:var(--n6)}
 
 /* hero */
-.hero{min-height:100vh;display:flex;align-items:center;padding-top:120px;overflow:hidden}
-.blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.55;animation:float 14s ease-in-out infinite}
-.b1{width:520px;height:520px;background:#ff6b2c;top:-140px;left:-160px}
-.b2{width:460px;height:460px;background:#7c5cff;bottom:-160px;right:-120px;animation-delay:-5s}
-.b3{width:300px;height:300px;background:#19d3c5;top:40%;left:45%;opacity:.25;animation-delay:-9s}
-@keyframes float{50%{transform:translate(60px,-50px) scale(1.15)}}
-.grid-bg{position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(circle at center,#000 20%,transparent 75%)}
-.hero-in{position:relative;display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:center}
-.hero h1{font-size:clamp(2.6rem,6vw,4.8rem);margin:1.2rem 0}
-.hero .lead{color:var(--mut);font-size:1.15rem;max-width:560px}
-.rot{display:inline-block;min-width:4ch}
-.rot span{display:inline-block;animation:pop .5s}
-@keyframes pop{from{opacity:0;transform:translateY(20px) rotateX(80deg)}}
-.search{margin-top:2.2rem;background:rgba(17,26,49,.75);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:var(--r);padding:1rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:.6rem}
-.search label{font-size:.72rem;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:.2rem}
-.f{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:.55rem .8rem;transition:.25s}
-.f:focus-within{border-color:var(--b);box-shadow:0 0 0 3px rgba(124,92,255,.25)}
-.f input,.f select{background:none;border:0;outline:0;color:var(--txt);width:100%;font:inherit}
-.f select option{background:var(--bg2)}
-.trust{display:flex;gap:1.6rem;margin-top:1.8rem;color:var(--mut);font-size:.9rem;flex-wrap:wrap}
-.trust b{color:#fff}
+.hero{padding:72px 0 88px;background:var(--n1);overflow:hidden}
+.hero-g{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+.hero h1{font-size:clamp(38px,5.2vw,62px);font-weight:800}
+.hero h1 .hl{color:var(--tealD);position:relative;white-space:nowrap}
+.hero h1 .hl::after{content:"";position:absolute;left:0;right:0;bottom:4px;height:10px;background:var(--amber);opacity:.45;z-index:-1;transform-origin:left;animation:grow .7s .6s var(--ease) both}
+@keyframes grow{from{transform:scaleX(0)}}
+.hero .lead{margin:20px 0 28px}
+.st{opacity:0;transform:translateY(16px);animation:in var(--t4) var(--ease) forwards}
+@keyframes in{to{opacity:1;transform:none}}
+.st1{animation-delay:.05s}.st2{animation-delay:.15s}.st3{animation-delay:.25s}.st4{animation-delay:.35s}
+.qform{background:#fff;border:1px solid var(--n3);border-radius:18px;padding:20px;box-shadow:var(--sh)}
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fld label{display:block;font-size:13px;font-weight:600;color:var(--n6);margin-bottom:6px}
+.fld label .req{color:var(--err)}
+.fld input,.fld select,.fld textarea{width:100%;min-height:48px;padding:10px 14px;border:1.5px solid var(--n3);border-radius:10px;background:#fff;transition:border-color var(--t1),box-shadow var(--t1)}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:0;border-color:var(--teal);box-shadow:0 0 0 4px rgba(20,184,166,.18)}
+.fld.bad input,.fld.bad select{border-color:var(--err)}
+.fld .msg{font-size:13px;color:var(--err);min-height:0;margin-top:4px;display:none}
+.fld.bad .msg{display:block;animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.help{font-size:13px;color:var(--n5);margin-top:10px}
+.ac{position:relative}
+.ac ul{position:absolute;z-index:20;top:100%;left:0;right:0;background:#fff;border:1px solid var(--n3);border-radius:10px;box-shadow:var(--shH);margin-top:4px;list-style:none;max-height:240px;overflow:auto}
+.ac li{padding:10px 14px;cursor:pointer;font-size:15px}.ac li[aria-selected=true],.ac li:hover{background:var(--n1)}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
 
-/* truck illustration */
-.scene{position:relative;height:460px}
-.card-f{position:absolute;background:rgba(17,26,49,.85);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:18px;padding:1rem 1.2rem;box-shadow:0 25px 60px -20px rgba(0,0,0,.6);animation:bob 6s ease-in-out infinite}
-@keyframes bob{50%{transform:translateY(-16px)}}
-.cf1{top:10px;left:0;animation-delay:-1s}.cf2{top:150px;right:0;animation-delay:-3s}.cf3{bottom:20px;left:30px;animation-delay:-4.5s}
-.road{position:absolute;bottom:120px;left:0;right:0;height:4px;background:repeating-linear-gradient(90deg,#fff3 0 30px,transparent 30px 60px);animation:road 1s linear infinite}
-@keyframes road{to{background-position:-60px 0}}
-.truck{position:absolute;bottom:124px;left:50%;transform:translateX(-50%);font-size:7rem;filter:drop-shadow(0 20px 30px rgba(255,107,44,.4));animation:drive 1.2s ease-in-out infinite}
-@keyframes drive{50%{transform:translateX(-50%) translateY(-4px) rotate(-1deg)}}
-.stars{color:#ffc53d;letter-spacing:2px}
-.pill{display:inline-flex;align-items:center;gap:.4rem;font-size:.75rem;padding:.2rem .6rem;border-radius:999px;background:rgba(25,211,197,.15);color:var(--c)}
+/* hero illustration */
+.scene{position:relative;aspect-ratio:1/1;max-width:540px;margin-left:auto;width:100%}
+.scene svg{width:100%;height:100%}
+.truck{animation:drive 3.4s ease-in-out infinite}
+@keyframes drive{50%{transform:translate(8px,-2px)}}
+.wheel{transform-box:fill-box;transform-origin:center;animation:spin 1.2s linear infinite}
+.dash{animation:dash 1.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-40}}
+.float{position:absolute;background:#fff;border:1px solid var(--n3);border-radius:14px;padding:12px 16px;box-shadow:var(--sh);font-size:14px;animation:bob 5s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-10px)}}
+.f1{top:8%;left:0}.f2{bottom:14%;right:0;animation-delay:-2.5s}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--teal);margin-right:6px}
 
-/* marquee */
-.marq{border-block:1px solid var(--line);padding:22px 0;overflow:hidden;background:var(--bg2)}
-.marq-t{display:flex;gap:4rem;width:max-content;animation:mq 30s linear infinite}
-.marq-t span{color:var(--mut);font-family:"Space Grotesk";font-size:1.2rem;white-space:nowrap}
-.marq-t span::before{content:"✦ ";color:var(--a)}
-@keyframes mq{to{transform:translateX(-50%)}}
+/* trust */
+.trust{border-block:1px solid var(--n3);background:#fff;padding:28px 0}
+.trust-g{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.ti{display:flex;gap:14px;align-items:flex-start}
+.ti .ic{flex:none;width:44px;height:44px;border-radius:10px;background:var(--n2);display:grid;place-items:center;color:var(--navy)}
+.ti b{display:block;color:var(--navy)}.ti span{font-size:14px;color:var(--n5)}
 
 /* cards */
-.grid{display:grid;gap:24px}
-.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
-.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:2rem;overflow:hidden;transition:transform .2s,border-color .3s;transform-style:preserve-3d}
-.card::before{content:"";position:absolute;inset:0;background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%),rgba(255,107,44,.16),transparent 45%);opacity:0;transition:.3s}
-.card:hover::before{opacity:1}
-.card:hover{border-color:rgba(255,107,44,.4)}
-.ico{width:60px;height:60px;border-radius:16px;display:grid;place-items:center;font-size:1.8rem;background:linear-gradient(135deg,rgba(255,107,44,.2),rgba(124,92,255,.2));margin-bottom:1.2rem;transition:.5s}
-.card:hover .ico{transform:rotate(-10deg) scale(1.15)}
-.card h3{font-size:1.3rem;margin-bottom:.5rem}
-.card p{color:var(--mut);font-size:.95rem}
-.subs{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:1rem}
-.subs span{font-size:.75rem;padding:.25rem .6rem;border-radius:8px;background:rgba(255,255,255,.05);color:#c7cfe6}
-.more{margin-top:1.2rem;color:var(--a);font-weight:600;display:inline-flex;gap:.3rem;transition:.3s}
-.card:hover .more{gap:.8rem}
-
-/* extra chips */
-.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:.8rem;margin-top:40px}
-.chip{padding:.7rem 1.2rem;border-radius:999px;background:var(--card);border:1px solid var(--line);transition:.3s}
-.chip:hover{background:var(--grad);transform:translateY(-4px) rotate(-2deg)}
+.grid{display:grid;gap:20px}
+.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+.card{background:#fff;border:1px solid var(--n3);border-radius:var(--r);padding:24px;transition:transform var(--t2) var(--ease),box-shadow var(--t2),border-color var(--t2);position:relative}
+a.card:hover,.card.hov:hover{transform:translateY(-4px);box-shadow:var(--shH);border-color:var(--n4)}
+.svc .ic{width:52px;height:52px;border-radius:12px;background:var(--n2);display:grid;place-items:center;margin-bottom:18px;color:var(--navy);transition:background var(--t2),color var(--t2),transform var(--t2) var(--ease)}
+.svc:hover .ic{background:var(--navy);color:var(--teal);transform:rotate(-6deg) scale(1.06)}
+.svc h3{font-size:19px;margin-bottom:6px}
+.svc p{font-size:14px;color:var(--n5)}
+.svc .go{margin-top:14px;font-size:14px;font-weight:600;color:var(--tealD);display:inline-flex;gap:6px;transition:gap var(--t1)}
+.svc:hover .go{gap:10px}
 
 /* steps */
-.steps{counter-reset:s}
-.step{text-align:center}
-.step .n{width:80px;height:80px;border-radius:50%;margin:0 auto 1.2rem;display:grid;place-items:center;font-size:2rem;background:var(--bg2);border:2px solid transparent;background-image:linear-gradient(var(--bg2),var(--bg2)),var(--grad);background-origin:border-box;background-clip:padding-box,border-box;position:relative}
-.step .n::after{counter-increment:s;content:counter(s);position:absolute;top:-6px;right:-6px;width:28px;height:28px;border-radius:50%;background:var(--grad);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+.steps{counter-reset:s;position:relative}
+.steps::before{content:"";position:absolute;top:27px;left:12%;right:12%;height:2px;background:var(--n3)}
+.steps .bar{position:absolute;top:27px;left:12%;height:2px;background:var(--teal);width:0;transition:width 1.4s var(--ease)}
+.steps.in .bar{width:76%}
+.stp{text-align:center;position:relative}
+.stp .n{width:56px;height:56px;border-radius:50%;margin:0 auto 18px;background:#fff;border:2px solid var(--n3);display:grid;place-items:center;font:800 20px Manrope;color:var(--navy);transition:background var(--t3),border-color var(--t3),color var(--t3)}
+.steps.in .stp .n{background:var(--navy);border-color:var(--navy);color:var(--teal)}
+.steps.in .stp:nth-child(3) .n{transition-delay:.35s}.steps.in .stp:nth-child(4) .n{transition-delay:.7s}.steps.in .stp:nth-child(5) .n{transition-delay:1.05s}
+.stp h3{font-size:18px;margin-bottom:6px}.stp p{font-size:14px;color:var(--n5)}
+
+/* providers */
+.pcard{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.pcard .top{display:flex;gap:14px;align-items:center;padding:20px 20px 0}
+.plogo{width:52px;height:52px;border-radius:12px;background:var(--navy);color:var(--amber);display:grid;place-items:center;font:800 18px Manrope,Inter,sans-serif;flex:none}
+.pcard h3{font-size:17px}
+.sample{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:#FEF3D7;color:var(--warn);padding:2px 8px;border-radius:6px}
+.pbody{padding:16px 20px;flex:1}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.bdg{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 8px;border-radius:6px;background:var(--n1);color:var(--n6);border:1px solid var(--n3)}
+.bdg.v{background:#E7F8F5;border-color:#B5EDE5;color:#0B6B60}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px;color:var(--n5)}.kv b{color:var(--n7);font-weight:500}
+.pfoot{display:flex;gap:8px;padding:16px 20px;border-top:1px solid var(--n3);background:var(--n1);align-items:center}
+.cmp{display:flex;align-items:center;gap:6px;font-size:14px;margin-right:auto;cursor:pointer}
+.cmp input{width:18px;height:18px;accent-color:var(--teal)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.chipb{min-height:40px;padding:0 16px;border-radius:999px;border:1px solid var(--n3);background:#fff;cursor:pointer;font-weight:500;color:var(--n6);transition:all var(--t1)}
+.chipb[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.pcard.out{display:none}
+.cmpbar{position:fixed;left:50%;bottom:20px;transform:translate(-50%,140%);background:var(--navy);color:#fff;border-radius:14px;padding:12px 12px 12px 20px;display:flex;gap:16px;align-items:center;z-index:60;box-shadow:var(--shH);transition:transform var(--t3) var(--ease)}
+.cmpbar.on{transform:translate(-50%,0)}
 
 /* calculator */
-.calc{display:grid;grid-template-columns:1.3fr 1fr;gap:28px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:2rem}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
-.opt{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0 1.2rem}
-.opt button{padding:.55rem 1rem;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--txt);transition:.25s}
-.opt button.on{background:var(--grad);border-color:transparent}
-.inv{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;margin-top:.5rem}
-.it{display:flex;justify-content:space-between;align-items:center;padding:.55rem .8rem;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line);font-size:.9rem}
-.qty{display:flex;align-items:center;gap:.5rem}
-.qty button{width:26px;height:26px;border-radius:8px;border:0;background:rgba(255,255,255,.1);color:#fff}
-.qty b{min-width:18px;text-align:center}
-input[type=range]{width:100%;accent-color:var(--a)}
-.result{position:sticky;top:100px;align-self:start;text-align:center;background:linear-gradient(160deg,#1a1440,#111a31 60%);overflow:hidden}
-.result .price{font-size:3.4rem;font-family:"Space Grotesk";font-weight:700;margin:.6rem 0}
-.bd{text-align:left;margin:1.4rem 0;display:grid;gap:.5rem}
-.bd div{display:flex;justify-content:space-between;color:var(--mut);font-size:.92rem;border-bottom:1px dashed var(--line);padding-bottom:.4rem}
-.bd b{color:#fff}
-.ring{width:150px;height:150px;margin:0 auto;border-radius:50%;background:conic-gradient(var(--a) calc(var(--p)*1%),rgba(255,255,255,.08) 0);display:grid;place-items:center;transition:--p .6s}
-.ring div{width:120px;height:120px;border-radius:50%;background:#15183a;display:grid;place-items:center;font-size:.8rem;color:var(--mut)}
-.ring b{display:block;font-size:1.5rem;color:#fff}
+.calc{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:start}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{min-height:44px;padding:0 16px;border-radius:10px;border:1.5px solid var(--n3);background:#fff;cursor:pointer;font-weight:500;transition:all var(--t1)}
+.opt[aria-pressed=true]{border-color:var(--teal);background:#E7F8F5;color:#0B6B60}
+.lbl{font-size:13px;font-weight:600;color:var(--n6);margin:18px 0 8px;display:block}
+input[type=range]{width:100%;accent-color:var(--teal);height:32px}
+.res{background:var(--navy);color:#fff;border-radius:var(--r);padding:28px;position:sticky;top:96px}
+.res h3{color:#fff;font-size:16px;font-weight:600;font-family:Inter}
+.big{font:800 clamp(34px,4vw,46px) Manrope;color:var(--teal);margin:8px 0 4px}
+.res .rows{margin:18px 0;display:grid;gap:8px;font-size:14px}
+.res .rows div{display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.12);color:var(--n4)}
+.res .rows b{color:#fff;font-weight:500}
+.meter{height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;margin:6px 0 16px}
+.meter i{display:block;height:100%;background:var(--amber);width:0;transition:width var(--t4) var(--ease)}
+.note{font-size:13px;color:var(--n4);margin-top:14px}
 
-/* companies */
-.filters{display:flex;justify-content:center;flex-wrap:wrap;gap:.6rem;margin-bottom:36px}
-.filters button{padding:.6rem 1.2rem;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--mut);transition:.3s}
-.filters button.on,.filters button:hover{background:var(--grad);color:#fff;border-color:transparent}
-.co{padding:0}
-.co-top{height:120px;position:relative;display:grid;place-items:center;font-size:3rem}
-.co-top .badge{position:absolute;top:12px;right:12px}
-.co-b{padding:1.4rem}
-.co-b .meta{display:flex;justify-content:space-between;margin:.6rem 0;font-size:.88rem;color:var(--mut)}
-.co.hide{display:none}
-.flip{perspective:1000px;height:330px;background:none;border:0;padding:0}
-.flip-in{position:relative;width:100%;height:100%;transition:transform .8s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
-.flip:hover .flip-in{transform:rotateY(180deg)}
-.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:var(--r);background:var(--card);border:1px solid var(--line);overflow:hidden}
-.back{transform:rotateY(180deg);padding:1.6rem;display:flex;flex-direction:column;justify-content:center;gap:.6rem;background:linear-gradient(160deg,#2a1640,#111a31)}
-.back li{list-style:none;color:#c7cfe6;font-size:.92rem}
+/* comparison table */
+.tbl{overflow-x:auto;border:1px solid var(--n3);border-radius:var(--r);background:#fff}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:15px}
+th,td{padding:16px 18px;text-align:left;border-bottom:1px solid var(--n3);vertical-align:top}
+thead th{background:var(--n1);font-family:Manrope;color:var(--navy)}
+th[scope=row]{color:var(--n6);font-weight:600;width:200px;background:#fff;position:sticky;left:0}
+tbody tr{transition:background var(--t1)}tbody tr:hover{background:#FBFCFD}
+.y{color:var(--ok);font-weight:600}.p{color:var(--warn);font-weight:600}
 
-/* stats */
-.stats{background:var(--bg2);border-block:1px solid var(--line)}
-.stat{text-align:center}
-.stat h3{font-size:3rem}
-.stat p{color:var(--mut)}
+/* cities */
+.city{display:flex;justify-content:space-between;align-items:center;padding:18px 20px}
+.city b{color:var(--navy);font-family:Manrope;font-size:17px}
+.city small{display:block;color:var(--n5)}
+.city .ar{width:36px;height:36px;border-radius:50%;background:var(--n2);display:grid;place-items:center;transition:background var(--t2),transform var(--t2)}
+.city:hover .ar{background:var(--teal);transform:translateX(4px)}
 
-/* pricing */
-.plan{display:flex;flex-direction:column}
-.plan.pop{border:1px solid transparent;background:linear-gradient(var(--card),var(--card)) padding-box,var(--grad) border-box;transform:scale(1.04)}
-.plan .amt{font-size:2.6rem;font-family:"Space Grotesk";font-weight:700;margin:.8rem 0}
-.plan .amt small{font-size:1rem;color:var(--mut)}
-.plan ul{list-style:none;margin:1rem 0 1.6rem;display:grid;gap:.6rem;flex:1}
-.plan li{color:#c7cfe6;font-size:.92rem}
-.plan li::before{content:"✓ ";color:var(--c);font-weight:700}
-.toggle{display:flex;justify-content:center;align-items:center;gap:.8rem;margin-bottom:40px;color:var(--mut)}
-.sw{width:56px;height:30px;border-radius:999px;background:var(--card);border:1px solid var(--line);position:relative}
-.sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--grad);transition:.3s}
-.sw.on::after{left:29px}
+/* explainer tabs */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--n3);margin-bottom:28px}
+.tab{min-height:46px;padding:0 16px;border:0;background:none;cursor:pointer;font-weight:600;color:var(--n5);border-bottom:3px solid transparent;margin-bottom:-1px;transition:color var(--t1),border-color var(--t2)}
+.tab[aria-selected=true]{color:var(--navy);border-color:var(--teal)}
+.tpanel{display:grid;grid-template-columns:1fr 1fr;gap:32px;animation:in var(--t3) var(--ease)}
+.tpanel[hidden]{display:none}
+.tpanel ul{list-style:none;display:grid;gap:10px}
+.tpanel li{padding-left:28px;position:relative;color:var(--n6)}
+.tpanel li::before{content:"";position:absolute;left:0;top:5px;width:16px;height:16px;border-radius:4px;background:var(--teal)}
+.tpanel .con li::before{background:var(--n4)}
 
 /* reviews */
-.rv-track{display:flex;gap:24px;transition:transform .7s cubic-bezier(.2,.8,.2,1)}
-.rv{min-width:calc(33.333% - 16px)}
-.rv .who{display:flex;align-items:center;gap:.8rem;margin-top:1.2rem}
-.av{width:46px;height:46px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-weight:700}
-.dots{display:flex;justify-content:center;gap:.5rem;margin-top:30px}
-.dots button{width:10px;height:10px;border-radius:999px;border:0;background:#fff3;transition:.3s}
-.dots button.on{width:32px;background:var(--a)}
+.rv-wrap{overflow:hidden}
+.rv-track{display:flex;gap:20px;transition:transform var(--t4) var(--ease)}
+.rv{flex:0 0 calc((100% - 40px)/3)}
+.rv .stars{color:var(--amber);letter-spacing:2px}
+.rv p{margin:12px 0 16px;color:var(--n6)}
+.rv .who{font-size:14px;color:var(--n5)}.rv .who b{color:var(--navy);display:block}
+.rvnav{display:flex;align-items:center;gap:12px;margin-top:24px}
+.ibtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--n3);background:#fff;cursor:pointer;display:grid;place-items:center;transition:background var(--t1)}
+.ibtn:hover{background:var(--n2)}
+.pgs{display:flex;gap:6px}.pgs button{width:10px;height:10px;border-radius:99px;border:0;background:var(--n3);cursor:pointer;transition:width var(--t2),background var(--t2)}
+.pgs button[aria-current=true]{width:28px;background:var(--navy)}
+.disc{font-size:13px;color:var(--n5);margin-top:16px}
 
-/* guides */
-.guide{padding:0}
-.guide .gi{height:170px;display:grid;place-items:center;font-size:4rem;transition:.6s}
-.guide:hover .gi{transform:scale(1.15) rotate(-4deg)}
-.guide .gb{padding:1.5rem}
-.guide .gb small{color:var(--a);font-weight:600}
+/* resources */
+.res-c .art{aspect-ratio:16/9;border-radius:10px;background:var(--n2);margin-bottom:16px;display:grid;place-items:center;overflow:hidden}
+.res-c .art svg{width:46%;transition:transform var(--t4) var(--ease)}
+.res-c:hover .art svg{transform:scale(1.1) rotate(-3deg)}
+.res-c small{color:var(--tealD);font-weight:600;font-size:13px}
+.res-c h3{font-size:18px;margin-top:4px}
+
+/* partner */
+.partner{background:var(--navy);color:#fff;border-radius:24px;padding:56px;display:grid;grid-template-columns:1fr 1fr;gap:48px}
+.partner h2{color:#fff}.partner .lead{color:var(--n4)}
+.pf{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pf div{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:16px;transition:background var(--t2),transform var(--t2)}
+.pf div:hover{background:rgba(255,255,255,.1);transform:translateY(-3px)}
+.pf b{display:block;color:var(--amber);margin-bottom:2px}.pf span{font-size:14px;color:var(--n4)}
 
 /* faq */
-.faq{max-width:820px;margin:auto;display:grid;gap:14px}
-.q{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.q button{width:100%;text-align:left;padding:1.3rem 1.5rem;background:none;border:0;color:var(--txt);font-weight:600;font-size:1.05rem;display:flex;justify-content:space-between;align-items:center}
-.q button span{transition:.35s;font-size:1.5rem;color:var(--a)}
-.q.open button span{transform:rotate(45deg)}
-.q .a{max-height:0;overflow:hidden;transition:max-height .45s;color:var(--mut);padding:0 1.5rem}
-.q.open .a{max-height:240px;padding-bottom:1.3rem}
+.faq-s{max-width:820px;margin:0 auto}
+.faq-search{margin-bottom:20px}
+.qa{border:1px solid var(--n3);border-radius:12px;margin-bottom:10px;background:#fff}
+.qa h3{font-size:17px}
+.qa button{width:100%;text-align:left;background:none;border:0;padding:18px 20px;cursor:pointer;display:flex;justify-content:space-between;gap:16px;font:600 17px Manrope;color:var(--navy)}
+.qa .pl{flex:none;width:24px;height:24px;position:relative}
+.qa .pl::before,.qa .pl::after{content:"";position:absolute;left:5px;right:5px;top:11px;height:2px;background:var(--teal);transition:transform var(--t2)}
+.qa .pl::after{transform:rotate(90deg)}
+.qa button[aria-expanded=true] .pl::after{transform:rotate(0)}
+.qa .ans{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--t3) var(--ease)}
+.qa .ans>div{overflow:hidden;padding:0 20px;color:var(--n5)}
+.qa.open .ans{grid-template-rows:1fr}.qa.open .ans>div{padding-bottom:18px}
+.empty{text-align:center;padding:32px;color:var(--n5);border:1px dashed var(--n3);border-radius:12px;display:none}
 
-/* cta */
-.cta{border-radius:32px;padding:70px 50px;text-align:center;background:var(--grad);position:relative;overflow:hidden}
-.cta h2{font-size:clamp(2rem,4vw,3.2rem);margin-bottom:1rem}
-.cta .btn-g{background:#fff;color:#111}
-.cta::before{content:"";position:absolute;width:400px;height:400px;border-radius:50%;background:#fff2;top:-200px;right:-100px;animation:float 10s infinite}
+/* final cta */
+.fcta{background:var(--teal);border-radius:24px;padding:64px 32px;text-align:center}
+.fcta h2{font-size:clamp(30px,4vw,44px)}
+.fcta p{color:var(--navy);opacity:.85;margin:12px 0 28px;font-size:18px}
 
 /* footer */
-footer{padding:80px 0 30px;border-top:1px solid var(--line);margin-top:110px}
-.ft{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:30px}
-.ft h4{margin-bottom:1rem}
-.ft a{display:block;color:var(--mut);margin:.45rem 0;transition:.2s}
-.ft a:hover{color:#fff;transform:translateX(4px)}
-.news{display:flex;gap:.5rem;margin-top:1rem}
-.news input{flex:1;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:.7rem 1rem;color:#fff;outline:0}
-.copy{display:flex;justify-content:space-between;color:var(--mut);font-size:.85rem;margin-top:50px;padding-top:24px;border-top:1px solid var(--line)}
+footer{background:var(--navy);color:var(--n4);padding:72px 0 28px;margin-top:96px}
+.ft{display:grid;grid-template-columns:1.5fr repeat(4,1fr);gap:32px}
+.ft h4{color:#fff;font-size:15px;margin-bottom:14px}
+.ft a{display:block;padding:5px 0;font-size:15px;transition:color var(--t1)}
+.ft a:hover{color:var(--teal)}
+.fb{display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between;border-top:1px solid var(--n6);margin-top:48px;padding-top:24px;font-size:14px}
+.fb nav{display:flex;flex-wrap:wrap;gap:6px 18px}
+.fb button{background:none;border:0;color:var(--n4);cursor:pointer;text-decoration:underline}
 
-/* modal + toast */
-.modal{position:fixed;inset:0;background:rgba(3,6,14,.75);backdrop-filter:blur(8px);display:none;place-items:center;z-index:300;padding:20px}
-.modal.on{display:grid;animation:fade .3s}
-@keyframes fade{from{opacity:0}}
-.modal .panel{width:min(520px,100%);animation:up .45s cubic-bezier(.2,.8,.2,1)}
-@keyframes up{from{transform:translateY(40px) scale(.95);opacity:0}}
-.modal .x{float:right;background:none;border:0;color:#fff;font-size:1.5rem}
-.toast{position:fixed;bottom:30px;left:50%;transform:translate(-50%,120px);background:#1b2442;border:1px solid var(--c);padding:1rem 1.5rem;border-radius:14px;z-index:400;transition:.5s cubic-bezier(.2,.8,.2,1)}
-.toast.on{transform:translate(-50%,0)}
+/* modal */
+.modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;visibility:hidden}
+.modal.open{visibility:visible}
+.modal .bd{position:absolute;inset:0;background:rgba(16,42,67,.55);opacity:0;transition:opacity var(--t3)}
+.modal.open .bd{opacity:1}
+.dlg{position:relative;background:#fff;border-radius:18px;width:min(640px,100%);max-height:92vh;overflow:auto;padding:28px;opacity:0;transform:scale(.96) translateY(10px);transition:opacity var(--t3),transform var(--t3) var(--ease)}
+.modal.open .dlg{opacity:1;transform:none}
+.x{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;border:0;background:var(--n1);cursor:pointer;font-size:20px}
+.prog{height:6px;background:var(--n2);border-radius:99px;margin:16px 0 6px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--teal);transition:width var(--t3) var(--ease)}
+.stepi{font-size:13px;color:var(--n5)}
+.qs{display:none;margin-top:18px}.qs.on{display:grid;gap:14px;animation:in var(--t3) var(--ease)}
+.qs h3{font-size:22px}
+.inv{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.inv .it{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--n3);border-radius:10px;padding:8px 12px}
+.qty{display:flex;align-items:center;gap:6px}.qty button{width:32px;height:32px;border-radius:8px;border:1px solid var(--n3);background:#fff;cursor:pointer}
+.qty output{min-width:20px;text-align:center;font-weight:600}
+.dnav{display:flex;justify-content:space-between;gap:12px;margin-top:22px}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--n6)}.chk input{width:20px;height:20px;margin-top:2px;accent-color:var(--teal);flex:none}
+.review{background:var(--n1);border-radius:12px;padding:16px;font-size:14px;display:grid;gap:6px}
+.review div{display:flex;justify-content:space-between;gap:12px}.review span{color:var(--n5)}
+.ok-ic{width:72px;height:72px;border-radius:50%;background:#E7F8F5;display:grid;place-items:center;margin:8px auto}
+.ok-ic path{stroke-dasharray:40;stroke-dashoffset:40;animation:draw .6s .2s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+/* toast */
+.toast{position:fixed;top:20px;right:20px;z-index:200;background:#fff;border:1px solid var(--n3);border-left:4px solid var(--ok);border-radius:10px;padding:14px 18px;box-shadow:var(--shH);transform:translateX(130%);transition:transform var(--t3) var(--ease);max-width:360px}
+.toast.on{transform:none}
+
+/* mobile sticky */
+.mbar{display:none}
 
 /* reveal */
-.rv-up{opacity:0;transform:translateY(50px);transition:opacity .9s,transform .9s cubic-bezier(.2,.8,.2,1)}
-.rv-up.in{opacity:1;transform:none}
-.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
+.rv-in{opacity:0;transform:translateY(24px);transition:opacity var(--t4) var(--ease),transform var(--t4) var(--ease)}
+.rv-in.in{opacity:1;transform:none}
 
-@media(max-width:980px){
-  .hero-in,.calc{grid-template-columns:1fr}
-  .scene{display:none}
-  .search{grid-template-columns:1fr 1fr}
-  .g3,.g4{grid-template-columns:1fr 1fr}
-  .ft{grid-template-columns:1fr 1fr}
-  .rv{min-width:calc(50% - 12px)}
-  .plan.pop{transform:none}
-  .links{display:none;position:absolute;top:76px;left:0;right:0;flex-direction:column;background:var(--bg2);padding:1.5rem 4%;border-bottom:1px solid var(--line)}
-  .links.on{display:flex}
-  .burger{display:block}
-  .nav-cta{display:none}
+@media(max-width:1100px){
+ .nav,.hd-r .btn-o{display:none}.burger{display:grid;place-items:center}
+ .g4{grid-template-columns:repeat(2,1fr)}
+ .trust-g{grid-template-columns:repeat(2,1fr)}
+ .ft{grid-template-columns:repeat(3,1fr)}.ft>div:first-child{grid-column:1/-1}
+}
+@media(max-width:900px){
+ .hero-g,.calc,.partner,.tpanel{grid-template-columns:1fr}
+ .scene{max-width:420px;margin:auto}
+ .g3{grid-template-columns:1fr 1fr}
+ .rv{flex-basis:calc((100% - 20px)/2)}
+ .steps::before,.steps .bar{display:none}
+ .partner{padding:36px 24px}
+ .res{position:static}
 }
 @media(max-width:620px){
-  .search,.g3,.g4,.row,.inv{grid-template-columns:1fr}
-  .ft{grid-template-columns:1fr}
-  .rv{min-width:100%}
-  section{padding:80px 0}
-  .cta{padding:50px 24px}
+ section{padding:64px 0}
+ .wrap{width:calc(100% - 32px)}
+ .g4,.g3,.g2,.qgrid,.inv,.pf,.trust-g{grid-template-columns:1fr}
+ .rv{flex-basis:100%}
+ .ft{grid-template-columns:1fr 1fr}
+ .hd-r .btn-p{display:none}
+ .float{display:none}
+ .mbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:55;background:#fff;border-top:1px solid var(--n3);padding:10px 16px;gap:10px;transform:translateY(100%);transition:transform var(--t3) var(--ease)}
+ .mbar.on{transform:none}.mbar .btn{flex:1}
+ footer{padding-bottom:96px}
 }
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.st,.rv-in{opacity:1;transform:none}}
 </style>
 </head>
 <body>
-<div id="prog"></div><div id="glow"></div>
+<a href="#main" class="skip">Skip to content</a>
 
-<nav id="nav"><div class="wrap nav-in">
-  <a href="#" class="logo"><i>🚚</i>Move<span class="grad">Match</span></a>
-  <div class="links" id="links">
-    <a href="#services">Services</a><a href="#how">How it works</a><a href="#quote">Get a quote</a><a href="#movers">Movers</a><a href="#pros">For movers</a><a href="#faq">FAQ</a>
-  </div>
-  <a href="#quote" class="btn btn-p nav-cta">Free quote →</a>
-  <button class="burger" id="burger" aria-label="Menu">☰</button>
-</div></nav>
-
-<!-- HERO -->
-<header class="hero">
-  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="grid-bg"></div>
-  <div class="wrap hero-in">
-    <div>
-      <span class="tag rv-up">⚡ 2,400+ verified movers across the US</span>
-      <h1 class="rv-up d1">Your <span class="rot grad" id="rot"><span>home</span></span><br>moved, minus the stress.</h1>
-      <p class="lead rv-up d2">Compare verified moving companies, build your inventory and get an instant price — then book in minutes. Residential, commercial, long-distance, packing and storage, all in one place.</p>
-      <form class="search rv-up d3" id="heroForm">
-        <div class="f"><label>Moving from</label><input id="hFrom" placeholder="ZIP or city" required></div>
-        <div class="f"><label>Moving to</label><input id="hTo" placeholder="ZIP or city" required></div>
-        <div class="f"><label>Move date</label><input type="date" id="hDate"></div>
-        <div class="f"><label>Home size</label><select id="hSize"><option value="0">Studio</option><option value="1" selected>1 Bedroom</option><option value="2">2 Bedrooms</option><option value="3">3 Bedrooms</option><option value="4">4+ Bedrooms</option><option value="5">Office</option></select></div>
-        <button class="btn btn-p" type="submit">Get quotes</button>
-      </form>
-      <div class="trust rv-up d3"><span>⭐ <b>4.9/5</b> from 38k reviews</span><span>🛡️ <b>Licensed & insured</b> pros</span><span>💸 <b>No hidden</b> fees</span></div>
-    </div>
-    <div class="scene">
-      <div class="card-f cf1"><div class="stars">★★★★★</div><b>“Zero scratches. Done in 4 hours!”</b><div style="color:var(--mut);font-size:.8rem">Jessica · Austin → Dallas</div></div>
-      <div class="card-f cf2"><span class="pill">● Live</span><div style="margin-top:.4rem;font-size:.85rem;color:var(--mut)">Quote ready</div><b style="font-size:1.6rem">$1,240</b><div style="font-size:.8rem;color:var(--mut)">3 movers available</div></div>
-      <div class="card-f cf3">📦 <b>48 items</b> in inventory<br><span style="font-size:.8rem;color:var(--mut)">Crew of 3 · 26 ft truck</span></div>
-      <div class="road"></div>
-      <div class="truck">🚚</div>
-    </div>
-  </div>
-</header>
-
-<div class="marq"><div class="marq-t" id="marq"></div></div>
-
-<!-- SERVICES -->
-<section id="services"><div class="wrap">
-  <div class="sec-h rv-up"><span class="tag">Services</span><h2>Every kind of move, <span class="grad">covered</span></h2><p>From a single room to a whole warehouse — find a specialist for exactly what you need.</p></div>
-  <div class="grid g3" id="svc"></div>
-  <div class="chips rv-up" id="chips"></div>
-</div></section>
-
-<!-- HOW -->
-<section id="how" style="background:var(--bg2)"><div class="wrap">
-  <div class="sec-h rv-up"><span class="tag">How it works</span><h2>Moved in <span class="grad">4 simple steps</span></h2></div>
-  <div class="grid g4 steps">
-    <div class="step rv-up"><div class="n">📍</div><h3>Tell us your move</h3><p style="color:var(--mut)">Origin, destination, date and home size.</p></div>
-    <div class="step rv-up d1"><div class="n">📦</div><h3>Build your inventory</h3><p style="color:var(--mut)">Add furniture and boxes for an accurate price.</p></div>
-    <div class="step rv-up d2"><div class="n">⚖️</div><h3>Compare movers</h3><p style="color:var(--mut)">Verified profiles, reviews and real quotes.</p></div>
-    <div class="step rv-up d3"><div class="n">✅</div><h3>Book & track</h3><p style="color:var(--mut)">Secure deposit, crew details and live updates.</p></div>
-  </div>
-</div></section>
-
-<!-- CALCULATOR -->
-<section id="quote"><div class="wrap">
-  <div class="sec-h rv-up"><span class="tag">Instant estimate</span><h2>Moving cost <span class="grad">calculator</span></h2><p>Adjust anything and watch your estimate update in real time.</p></div>
-  <div class="calc">
-    <div class="panel rv-up">
-      <div class="row">
-        <div class="f"><label>Moving from</label><input id="cFrom" placeholder="e.g. Chicago, IL"></div>
-        <div class="f"><label>Moving to</label><input id="cTo" placeholder="e.g. Denver, CO"></div>
-      </div>
-      <label style="color:var(--mut);font-size:.85rem">Distance: <b id="distV" style="color:#fff">25</b> miles</label>
-      <input type="range" id="dist" min="5" max="3000" value="25">
-      <p style="color:var(--mut);font-size:.85rem;margin-top:1rem">Home size</p>
-      <div class="opt" id="size"></div>
-      <p style="color:var(--mut);font-size:.85rem">Extra services</p>
-      <div class="opt" id="extras"></div>
-      <p style="color:var(--mut);font-size:.85rem">Inventory (large items)</p>
-      <div class="inv" id="inv"></div>
-    </div>
-    <div class="panel result rv-up d2">
-      <span class="tag">Your estimate</span>
-      <div class="price" id="price">$0</div>
-      <div style="color:var(--mut);font-size:.9rem" id="range">—</div>
-      <div class="bd" id="bd"></div>
-      <div class="ring" id="ring" style="--p:30"><div><span><b id="hrs">0</b>est. hours</span></div></div>
-      <button class="btn btn-p" style="width:100%;justify-content:center;margin-top:1.5rem" onclick="openModal()">Book this move →</button>
-      <p style="color:var(--mut);font-size:.75rem;margin-top:.8rem">Estimate only. Final price confirmed by your mover.</p>
-    </div>
-  </div>
-</div></section>
-
-<!-- STATS -->
-<section class="stats" style="padding:70px 0"><div class="wrap grid g4">
-  <div class="stat rv-up"><h3 class="grad" data-n="2400">0</h3><p>Verified movers</p></div>
-  <div class="stat rv-up d1"><h3 class="grad" data-n="185000">0</h3><p>Moves completed</p></div>
-  <div class="stat rv-up d2"><h3 class="grad" data-n="50">0</h3><p>States covered</p></div>
-  <div class="stat rv-up d3"><h3 class="grad" data-n="98">0</h3><p>% on-time arrival</p></div>
-</div></section>
-
-<!-- MOVERS -->
-<section id="movers"><div class="wrap">
-  <div class="sec-h rv-up"><span class="tag">Top rated</span><h2>Meet <span class="grad">verified movers</span></h2><p>Hover a card to flip it. Every company is licensed, insured and background-checked.</p></div>
-  <div class="filters" id="filt"></div>
-  <div class="grid g3" id="cos"></div>
-</div></section>
-
-<!-- PRICING -->
-<section id="pros" style="background:var(--bg2)"><div class="wrap">
-  <div class="sec-h rv-up"><span class="tag">For moving companies</span><h2>Grow your moving business with <span class="grad">Moving OS</span></h2><p>Leads, CRM, crews, fleet, dispatch and payments — one platform.</p></div>
-  <div class="toggle rv-up">Monthly <div class="sw" id="sw"></div> Yearly <span class="pill">Save 20%</span></div>
-  <div class="grid g4" id="plans"></div>
-</div></section>
-
-<!-- REVIEWS -->
-<section><div class="wrap">
-  <div class="sec-h rv-up"><span class="tag">Reviews</span><h2>Loved by <span class="grad">movers & movees</span></h2></div>
-  <div style="overflow:hidden"><div class="rv-track" id="rvt"></div></div>
-  <div class="dots" id="dots"></div>
-</div></section>
-
-<!-- GUIDES -->
-<section style="background:var(--bg2)"><div class="wrap">
-  <div class="sec-h rv-up"><span class="tag">Moving guides</span><h2>Plan smarter with <span class="grad">expert guides</span></h2></div>
-  <div class="grid g3" id="guides"></div>
-</div></section>
-
-<!-- FAQ -->
-<section id="faq"><div class="wrap">
-  <div class="sec-h rv-up"><span class="tag">FAQ</span><h2>Questions? <span class="grad">Answered.</span></h2></div>
-  <div class="faq" id="faqs"></div>
-</div></section>
-
-<div class="wrap rv-up"><div class="cta">
-  <h2>Ready to make your move?</h2>
-  <p style="max-width:560px;margin:0 auto 2rem;opacity:.9">Get free quotes from verified movers near you in under 60 seconds.</p>
-  <a href="#quote" class="btn btn-g">Start my free quote →</a>
+<!-- 1 Announcement -->
+<div class="ann" id="ann" role="region" aria-label="Announcement"><div class="wrap">
+ <span>MoveMatch is launching across the United States — moving companies can now <a href="#partners">apply to join the network</a>.</span>
+ <button aria-label="Dismiss announcement" id="annX">×</button>
 </div></div>
 
-<footer><div class="wrap">
-  <div class="ft">
-    <div><a href="#" class="logo"><i>🚚</i>Move<span class="grad">Match</span></a><p style="color:var(--mut);margin-top:1rem;max-width:300px">The complete digital infrastructure for the moving industry.</p>
-      <form class="news" id="news"><input type="email" placeholder="Your email" required><button class="btn btn-p">Join</button></form></div>
-    <div><h4>Services</h4><a href="#services">Residential</a><a href="#services">Commercial</a><a href="#services">Long-distance</a><a href="#services">Storage</a></div>
-    <div><h4>Company</h4><a href="#how">How it works</a><a href="#movers">Movers</a><a href="#pros">For providers</a><a href="#faq">Support</a></div>
-    <div><h4>Contact</h4><a href="mailto:hello@movematch.com">hello@movematch.com</a><a href="tel:+18005550199">1-800-555-0199</a><a href="#">Mon–Sun · 7am–9pm</a></div>
+<!-- 2 Header -->
+<header id="hdr"><div class="wrap hd">
+ <a href="#" class="logo" aria-label="MoveMatch home"><span class="logo-m"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14B8A6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17V7h11v10M14 10h4l3 3v4h-7"/><circle cx="7" cy="18" r="2" fill="#102A43"/><circle cx="17" cy="18" r="2" fill="#102A43"/></svg></span>MoveMatch</a>
+ <nav aria-label="Primary"><ul class="nav" id="nav">
+  <li><button aria-expanded="false" aria-controls="mm1">Find Movers <svg class="car" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+   <div class="mega m4" id="mm1">
+    <div><h4>By move type</h4><a href="#providers" data-f="local">Local movers</a><a href="#providers" data-f="long">Long-distance movers</a><a href="#providers" data-f="long">Interstate movers</a><a href="#providers" data-f="long">Cross-country movers</a><a href="#providers" data-f="intl">International movers</a></div>
+    <div><h4>By property</h4><a href="#services">House movers</a><a href="#services">Apartment movers</a><a href="#services">Condo movers</a><a href="#services">Studio movers</a><a href="#services">Office movers</a></div>
+    <div><h4>Discovery</h4><a href="#providers">Search movers</a><a href="#providers">Verified movers</a><a href="#compare">Compare movers</a><a href="#cities">Movers near me</a><a href="#providers">Featured movers</a></div>
+    <div><h4>Get started</h4><a href="#" data-quote>Get moving quotes</a><a href="#calculator">Moving cost calculator</a><a href="#how">How it works</a></div>
+   </div></li>
+  <li><button aria-expanded="false" aria-controls="mm2">Moving Services <svg class="car" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+   <div class="mega m4" id="mm2">
+    <div><h4>Residential</h4><a href="#services">House</a><a href="#services">Apartment</a><a href="#services">Condo</a><a href="#services">Student</a><a href="#services">Senior</a><a href="#services">Military</a></div>
+    <div><h4>Commercial</h4><a href="#services">Office</a><a href="#services">Corporate</a><a href="#services">Retail</a><a href="#services">Warehouse</a><a href="#services">Industrial</a></div>
+    <div><h4>Specialist</h4><a href="#services">Piano</a><a href="#services">Antiques</a><a href="#services">Art</a><a href="#services">Heavy furniture</a><a href="#services">Vehicle transport</a></div>
+    <div><h4>Additional</h4><a href="#services">Packing</a><a href="#services">Unpacking</a><a href="#services">Storage</a><a href="#services">Junk removal</a><a href="#services">Cleaning</a><a href="#services">Furniture assembly</a></div>
+   </div></li>
+  <li><button aria-expanded="false" aria-controls="mm3">How It Works <svg class="car" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+   <div class="mega m2" id="mm3">
+    <div><h4>Plan</h4><a href="#how">How MoveMatch works</a><a href="#" data-quote>Request quotes</a><a href="#compare">Compare providers</a><a href="#calculator">Review estimates</a><a href="#" data-quote>Prepare inventory</a></div>
+    <div><h4>Manage</h4><a href="#" data-quote>Book services</a><a href="#faq">Track your move</a><a href="#faq">Manage your booking</a><a href="#faq">Payments and documents</a><a href="#faq">Claims and support</a></div>
+   </div></li>
+  <li><button aria-expanded="false" aria-controls="mm4">Resources <svg class="car" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+   <div class="mega m3" id="mm4">
+    <div><h4>Guides</h4><a href="#resources">Moving guides</a><a href="#resources">Checklists</a><a href="#cities">City guides</a><a href="#cities">State guides</a></div>
+    <div><h4>Tools</h4><a href="#calculator">Cost calculator</a><a href="#resources">Packing calculator</a><a href="#resources">Budget planner</a><a href="#resources">Date planner</a></div>
+    <div><h4>Help</h4><a href="#resources">Blog</a><a href="#faq">FAQs</a><a href="#faq">Help center</a></div>
+   </div></li>
+  <li><button aria-expanded="false" aria-controls="mm5">For Businesses <svg class="car" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+   <div class="mega m2" id="mm5">
+    <div><h4>Partners</h4><a href="#partners">Join as a mover</a><a href="#partners">Moving company benefits</a><a href="#partners">Partner registration</a><a href="#partners">Storage partnerships</a></div>
+    <div><h4>Enterprise</h4><a href="#partners">Fleet partnerships</a><a href="#services">Corporate relocation</a><a href="#partners">Enterprise solutions</a><a href="#partners">API integrations</a></div>
+   </div></li>
+ </ul></nav>
+ <div class="hd-r">
+  <button class="btn btn-g" data-login>Log in</button>
+  <button class="btn btn-p" data-quote>Get Free Quotes</button>
+  <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="drawer"><svg width="22" height="22" viewBox="0 0 24 24" stroke="#102A43" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+ </div>
+</div></header>
+
+<div class="drawer" id="drawer" aria-hidden="true"><div class="bd" data-close></div>
+ <div class="pn" role="dialog" aria-modal="true" aria-label="Menu">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span class="logo">MoveMatch</span><button class="x" style="position:static" data-close aria-label="Close menu">×</button></div>
+  <div id="dmenu"></div>
+  <div style="display:grid;gap:10px;margin-top:20px"><button class="btn btn-p" data-quote>Get Free Quotes</button><button class="btn btn-o" data-login>Log in</button></div>
+ </div>
+</div>
+
+<main id="main">
+<!-- 3 Hero -->
+<section class="hero"><div class="wrap hero-g">
+ <div>
+  <p class="eyebrow st st1">Moving marketplace · United States</p>
+  <h1 class="st st2">Your Next Move Starts With a <span class="hl">Better Match.</span></h1>
+  <p class="lead st st3">Compare trusted moving professionals, receive competitive quotes and manage your relocation with confidence.</p>
+  <form class="qform st st4" id="heroForm" novalidate aria-label="Start your moving quote">
+   <div class="qgrid">
+    <div class="fld ac"><label for="hFrom">Moving from <span class="req">*</span></label><input id="hFrom" autocomplete="off" placeholder="City or ZIP code" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-describedby="hFromE"><div class="msg" id="hFromE">Enter a US city or 5-digit ZIP code.</div></div>
+    <div class="fld ac"><label for="hTo">Moving to <span class="req">*</span></label><input id="hTo" autocomplete="off" placeholder="City or ZIP code" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-describedby="hToE"><div class="msg" id="hToE">Enter a US city or 5-digit ZIP code.</div></div>
+    <div class="fld"><label for="hDate">Move date</label><input type="date" id="hDate"></div>
+    <div class="fld"><label for="hType">Move type</label><select id="hType"><option>Local</option><option>Long-distance</option><option>Interstate</option><option>International</option><option>Commercial</option></select></div>
+    <div class="fld" style="grid-column:1/-1"><label for="hProp">Property type</label><select id="hProp"><option value="0">Studio</option><option value="1" selected>1-bedroom apartment</option><option value="2">2-bedroom home</option><option value="3">3-bedroom home</option><option value="4">4+ bedroom home</option><option value="5">Office</option></select></div>
+   </div>
+   <button class="btn btn-p" style="width:100%;margin-top:14px" type="submit">Compare Free Moving Quotes →</button>
+   <p class="help">Free, no obligation. Your details are shared only with providers you choose.</p>
+  </form>
+  <div class="hero-ctas st st4"><a href="#services" class="btn btn-o">Explore Moving Services</a></div>
+ </div>
+ <div class="scene" aria-hidden="true">
+  <svg viewBox="0 0 500 500">
+   <rect x="0" y="0" width="500" height="500" rx="28" fill="#EAF0F5"/>
+   <rect x="300" y="90" width="150" height="190" rx="6" fill="#fff" stroke="#D9E2EC" stroke-width="2"/>
+   <polygon points="290,95 375,40 460,95" fill="#102A43"/>
+   <rect x="320" y="120" width="40" height="40" rx="4" fill="#F4B740"/><rect x="390" y="120" width="40" height="40" rx="4" fill="#D9E2EC"/>
+   <rect x="355" y="200" width="40" height="80" rx="4" fill="#14B8A6"/>
+   <rect x="40" y="200" width="60" height="50" rx="4" fill="#fff" stroke="#9FB3C8" stroke-width="2"/><path d="M40 218h60" stroke="#F4B740" stroke-width="6"/>
+   <rect x="60" y="160" width="44" height="40" rx="4" fill="#fff" stroke="#9FB3C8" stroke-width="2"/><path d="M60 175h44" stroke="#F4B740" stroke-width="5"/>
+   <line x1="20" y1="408" x2="480" y2="408" stroke="#9FB3C8" stroke-width="4" stroke-dasharray="20 20" class="dash"/>
+   <g class="truck">
+    <rect x="60" y="290" width="230" height="100" rx="10" fill="#102A43"/>
+    <text x="90" y="350" font-family="Manrope, Inter, Arial, sans-serif" font-weight="800" font-size="30" fill="#fff">Move<tspan fill="#14B8A6">Match</tspan></text>
+    <path d="M290 315h70l40 40v35h-110z" fill="#14B8A6"/>
+    <path d="M300 325h55l28 28h-83z" fill="#EAF0F5"/>
+    <rect x="390" y="370" width="16" height="10" rx="3" fill="#F4B740"/>
+    <g class="wheel"><circle cx="120" cy="395" r="24" fill="#172B4D"/><circle cx="120" cy="395" r="9" fill="#D9E2EC"/><rect x="117" y="375" width="6" height="40" fill="#52606D"/></g>
+    <g class="wheel"><circle cx="340" cy="395" r="24" fill="#172B4D"/><circle cx="340" cy="395" r="9" fill="#D9E2EC"/><rect x="337" y="375" width="6" height="40" fill="#52606D"/></g>
+   </g>
+  </svg>
+  <div class="float f1"><span class="dot"></span><b>3 quotes</b> ready to compare</div>
+  <div class="float f2">Estimate range<br><b style="font:800 20px Manrope,Inter,sans-serif;color:#102A43">$1,050 – $1,400</b></div>
+ </div>
+</div></section>
+
+<!-- 4 Trust -->
+<div class="trust" aria-label="How we build trust"><div class="wrap trust-g">
+ <div class="ti rv-in"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div><div><b>Separate verification checks</b><span>Identity, business, licence and insurance shown individually.</span></div></div>
+ <div class="ti rv-in"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h7"/></svg></div><div><b>Transparent estimates</b><span>Estimate type, inclusions and extra charges disclosed.</span></div></div>
+ <div class="ti rv-in"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg></div><div><b>Data protection</b><span>Contact details shared only with providers you select.</span></div></div>
+ <div class="ti rv-in"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 13a8 8 0 0116 0v4a2 2 0 01-2 2h-1v-6h3M4 13v4a2 2 0 002 2h1v-6H4"/></svg></div><div><b>Human support</b><span>Claims, complaints and disputes reviewed by people.</span></div></div>
+</div></div>
+
+<!-- 5 Services -->
+<section id="services"><div class="wrap">
+ <div class="sh"><p class="eyebrow">Moving services</p><h2 class="h2">Every kind of move, one place to compare</h2><p class="lead">Choose the service that fits your move. Each category connects you with providers who offer it.</p></div>
+ <div class="grid g4" id="svcGrid"></div>
+</div></section>
+
+<!-- 6 How -->
+<section id="how" class="alt"><div class="wrap">
+ <div class="sh c"><p class="eyebrow">How it works</p><h2 class="h2">From first question to moving day</h2></div>
+ <div class="grid g4 steps" id="steps"><i class="bar"></i>
+  <div class="stp"><div class="n">1</div><h3>Tell us about your move</h3><p>Locations, date, property and what you're moving.</p></div>
+  <div class="stp"><div class="n">2</div><h3>Receive provider responses</h3><p>Suitable movers respond with estimates for your move.</p></div>
+  <div class="stp"><div class="n">3</div><h3>Compare estimates</h3><p>Side-by-side services, charges, protection and reviews.</p></div>
+  <div class="stp"><div class="n">4</div><h3>Choose and book</h3><p>Review the contract, pick a date and confirm.</p></div>
+ </div>
+</div></section>
+
+<!-- 7 Providers -->
+<section id="providers"><div class="wrap">
+ <div class="sh"><p class="eyebrow">Featured providers</p><h2 class="h2">Browse moving companies</h2><p class="lead">These are <b>sample profiles</b> showing how provider listings will appear. Real providers appear here once they pass review.</p></div>
+ <div class="filters" role="group" aria-label="Filter providers" id="pFilt"></div>
+ <div class="grid g3" id="pGrid"></div>
+ <div class="empty" id="pEmpty">No providers match this filter yet. <button class="btn btn-g" data-quote>Request quotes anyway</button></div>
+</div></section>
+<div class="cmpbar" id="cmpbar" role="status"><span id="cmpTxt">0 selected</span><a href="#compare" class="btn btn-p">Compare</a></div>
+
+<!-- 8 Calculator -->
+<section id="calculator" class="alt"><div class="wrap">
+ <div class="sh"><p class="eyebrow">Moving cost calculator</p><h2 class="h2">See an indicative cost range</h2><p class="lead">Adjust the details to see how each factor affects price. This is a guide, not a quote.</p></div>
+ <div class="calc">
+  <div class="card">
+   <div class="qgrid">
+    <div class="fld"><label for="cProp">Property type</label><select id="cProp"><option value="0">Studio</option><option value="1" selected>1 bedroom</option><option value="2">2 bedrooms</option><option value="3">3 bedrooms</option><option value="4">4+ bedrooms</option><option value="5">Office</option></select></div>
+    <div class="fld"><label for="cDate">Move date</label><input type="date" id="cDate"></div>
+   </div>
+   <label class="lbl" for="cDist">Distance: <output id="cDistV">30</output> miles</label>
+   <input type="range" id="cDist" min="5" max="3000" step="5" value="30">
+   <span class="lbl">Access at pickup</span>
+   <div class="opts" id="cAccess" role="group" aria-label="Access"><button class="opt" aria-pressed="true" data-v="0">Ground floor / elevator</button><button class="opt" aria-pressed="false" data-v="1">Stairs (1–2 flights)</button><button class="opt" aria-pressed="false" data-v="2">Stairs (3+) / long carry</button></div>
+   <span class="lbl">Service requirements</span>
+   <div class="opts" id="cExtra" role="group" aria-label="Services"><button class="opt" aria-pressed="false" data-v="packing">Full packing</button><button class="opt" aria-pressed="false" data-v="storage">Storage (1 month)</button><button class="opt" aria-pressed="false" data-v="specialty">Specialty item</button><button class="opt" aria-pressed="false" data-v="assembly">Furniture assembly</button></div>
   </div>
-  <div class="copy"><span>© <span id="yr"></span> MoveMatch. All rights reserved.</span><span>Privacy · Terms · Cookies</span></div>
+  <div class="res" aria-live="polite">
+   <h3>Indicative cost range</h3>
+   <div class="big" id="cRange">—</div>
+   <div style="font-size:14px;color:var(--n4)" id="cHrs"></div>
+   <div class="rows" id="cRows"></div>
+   <span style="font-size:13px;color:var(--n4)">Seasonal demand</span><div class="meter"><i id="cMeter"></i></div>
+   <button class="btn btn-p" style="width:100%" data-quote>Request Real Quotes</button>
+   <p class="note">Indicative only — not a binding quote. Actual prices depend on inventory, access, date and each provider's pricing, and are confirmed by the provider.</p>
+  </div>
+ </div>
+</div></section>
+
+<!-- 9 Comparison -->
+<section id="compare"><div class="wrap">
+ <div class="sh"><p class="eyebrow">Compare</p><h2 class="h2">Compare providers side by side</h2><p class="lead">Select providers above with “Compare”, or view the sample comparison below. Scroll sideways on mobile.</p></div>
+ <div class="tbl" tabindex="0" role="region" aria-label="Provider comparison"><table id="cmpTbl"></table></div>
+</div></section>
+
+<!-- 10 Cities -->
+<section id="cities" class="alt"><div class="wrap">
+ <div class="sh"><p class="eyebrow">Popular destinations</p><h2 class="h2">Moving to or from a major city?</h2><p class="lead">Provider availability is shown per city once providers in that area are approved.</p></div>
+ <div class="grid g4" id="cityGrid"></div>
+</div></section>
+
+<!-- 11 Explainer -->
+<section><div class="wrap">
+ <div class="sh"><p class="eyebrow">Know your options</p><h2 class="h2">Which type of move is right for you?</h2></div>
+ <div class="tabs" role="tablist" id="tabs"></div>
+ <div id="tpanels"></div>
+</div></section>
+
+<!-- 12 Stories -->
+<section class="alt"><div class="wrap">
+ <div class="sh"><p class="eyebrow">Customer stories</p><h2 class="h2">What a good move feels like</h2></div>
+ <div class="rv-wrap"><div class="rv-track" id="rvTrack"></div></div>
+ <div class="rvnav"><button class="ibtn" id="rvP" aria-label="Previous">‹</button><div class="pgs" id="rvPg"></div><button class="ibtn" id="rvN" aria-label="Next">›</button></div>
+ <p class="disc">Illustrative examples for design preview. Only verified reviews from completed bookings will be published.</p>
+</div></section>
+
+<!-- 13 Resources -->
+<section id="resources"><div class="wrap">
+ <div class="sh"><p class="eyebrow">Moving resources</p><h2 class="h2">Tools to plan a smoother move</h2></div>
+ <div class="grid g3" id="resGrid"></div>
+</div></section>
+
+<!-- 14 Partners -->
+<section id="partners" style="padding-top:0"><div class="wrap"><div class="partner rv-in">
+ <div><p class="eyebrow" style="color:var(--amber)">For moving companies</p><h2 class="h2">Grow your moving business with MoveMatch</h2><p class="lead">Receive qualified requests, send quotes and manage bookings and payments from one dashboard.</p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px"><button class="btn btn-p" id="applyBtn">Apply as a Mover</button><a href="#faq" class="btn btn-o" style="background:none;color:#fff;border-color:var(--n6)">How verification works</a></div></div>
+ <div class="pf">
+  <div><b>Qualified leads</b><span>Requests matched to your area and services.</span></div>
+  <div><b>Verification</b><span>Each check shown separately on your profile.</span></div>
+  <div><b>Quotes</b><span>Itemised estimates with revision history.</span></div>
+  <div><b>Bookings</b><span>Dates, crews and customer messages.</span></div>
+  <div><b>Payments</b><span>Deposits, receipts and refunds.</span></div>
+  <div><b>Analytics</b><span>Response rates and conversion.</span></div>
+ </div>
+</div></div></section>
+
+<!-- 15 FAQ -->
+<section id="faq" class="alt"><div class="wrap faq-s">
+ <div class="sh c"><p class="eyebrow">FAQ</p><h2 class="h2">Frequently asked questions</h2></div>
+ <div class="fld faq-search"><label for="faqQ">Search questions</label><input id="faqQ" type="search" placeholder="e.g. insurance, broker, tracking"></div>
+ <div id="faqList"></div>
+ <div class="empty" id="faqEmpty">No matching questions. <a href="#" data-support style="color:var(--tealD);font-weight:600">Contact support</a></div>
+</div></section>
+
+<!-- 16 Final CTA -->
+<section style="padding-bottom:0"><div class="wrap"><div class="fcta rv-in">
+ <h2>Ready to Make Your Move?</h2><p>Tell us about your move and compare providers in minutes.</p>
+ <button class="btn btn-s" data-quote>Get My Free Moving Quotes</button>
+</div></div></section>
+</main>
+
+<!-- 17 Footer -->
+<footer><div class="wrap">
+ <div class="ft">
+  <div><span class="logo" style="color:#fff"><span class="logo-m" style="background:var(--teal)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#102A43" stroke-width="2.4"><path d="M3 17V7h11v10M14 10h4l3 3v4h-7"/></svg></span>MoveMatch</span>
+   <p style="margin:16px 0;max-width:300px">A moving marketplace connecting customers with independent moving professionals. MoveMatch is not a moving carrier.</p>
+   <a href="#how">How it works</a><a href="#" data-support>Contact</a></div>
+  <div><h4>Find Movers</h4><a href="#providers">Local</a><a href="#providers">Long-distance</a><a href="#providers">Interstate</a><a href="#providers">International</a><a href="#providers">Verified</a><a href="#compare">Compare</a></div>
+  <div><h4>Services</h4><a href="#services">Residential</a><a href="#services">Commercial</a><a href="#services">Packing</a><a href="#services">Storage</a><a href="#services">Specialty</a><a href="#services">Junk removal</a></div>
+  <div><h4>Businesses</h4><a href="#partners">Become a mover</a><a href="#partners">Partner network</a><a href="#partners">Storage partners</a><a href="#partners">Enterprise</a><a href="#partners">Developer portal</a></div>
+  <div><h4>Help</h4><a href="#faq">Help center</a><a href="#faq">FAQs</a><a href="#" data-support>Contact support</a><a href="#" data-support>Claims</a><a href="#" data-support>Complaints</a><a href="#faq">Tracking</a></div>
+ </div>
+ <div class="fb"><span>© <span id="yr"></span> MoveMatch. All rights reserved.</span>
+  <nav aria-label="Legal"><a href="#faq">Terms</a><a href="#faq">Privacy</a><a href="#faq">Cookies</a><a href="#faq">Accessibility</a><a href="#partners">Partner agreement</a><button id="ckBtn">Cookie preferences</button></nav></div>
 </div></footer>
 
-<!-- MODAL -->
-<div class="modal" id="modal"><div class="panel">
-  <button class="x" onclick="closeModal()">×</button>
-  <h3 style="font-size:1.6rem">Book your move</h3>
-  <p style="color:var(--mut);margin:.4rem 0 1.4rem" id="mSum">We’ll match you with up to 3 verified movers.</p>
-  <form id="bookForm" style="display:grid;gap:.8rem">
-    <div class="f"><label>Full name</label><input required></div>
-    <div class="f"><label>Email</label><input type="email" required></div>
-    <div class="f"><label>Phone</label><input type="tel" required></div>
-    <button class="btn btn-p" style="justify-content:center">Request quotes</button>
+<div class="mbar" id="mbar"><button class="btn btn-p" data-quote>Get Free Quotes</button><a href="#calculator" class="btn btn-o">Estimate</a></div>
+
+<!-- Quote modal -->
+<div class="modal" id="qm" aria-hidden="true"><div class="bd" data-close></div>
+ <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="qmT">
+  <button class="x" data-close aria-label="Close">×</button>
+  <h2 id="qmT" style="font-size:24px">Get your free moving quotes</h2>
+  <div class="prog"><i id="qProg"></i></div><div class="stepi" id="qStepI" aria-live="polite"></div>
+  <form id="qf" novalidate>
+   <div class="qs" data-s="1"><h3>Where are you moving?</h3>
+    <div class="fld ac"><label for="qFrom">From <span class="req">*</span></label><input id="qFrom" autocomplete="off" placeholder="City or ZIP" required><div class="msg">Enter a US city or ZIP.</div></div>
+    <div class="fld ac"><label for="qTo">To <span class="req">*</span></label><input id="qTo" autocomplete="off" placeholder="City or ZIP" required><div class="msg">Enter a US city or ZIP.</div></div></div>
+   <div class="qs" data-s="2"><h3>When are you moving?</h3>
+    <div class="fld"><label for="qDate">Move date <span class="req">*</span></label><input type="date" id="qDate" required><div class="msg">Choose a date from today onwards.</div></div>
+    <div class="fld"><label for="qFlex">Date flexibility</label><select id="qFlex"><option>Exact date</option><option>± 3 days</option><option>± 1 week</option><option>Flexible</option></select></div></div>
+   <div class="qs" data-s="3"><h3>Tell us about the property</h3>
+    <div class="fld"><label for="qProp">Property</label><select id="qProp"><option>Studio</option><option>1-bedroom apartment</option><option>2-bedroom home</option><option>3-bedroom home</option><option>4+ bedroom home</option><option>Office</option></select></div>
+    <div class="fld"><label for="qAccess">Access at pickup</label><select id="qAccess"><option>Ground floor / elevator</option><option>Stairs (1–2 flights)</option><option>Stairs (3+) / long carry</option></select></div></div>
+   <div class="qs" data-s="4"><h3>What are you moving?</h3><p class="help" style="margin:0">Add large items — you can refine this later.</p><div class="inv" id="qInv"></div></div>
+   <div class="qs" data-s="5"><h3>Extra services</h3>
+    <label class="chk"><input type="checkbox" name="ex" value="Packing">Packing service</label>
+    <label class="chk"><input type="checkbox" name="ex" value="Storage">Storage</label>
+    <label class="chk"><input type="checkbox" name="ex" value="Specialty items">Specialty items (piano, art, safe)</label>
+    <label class="chk"><input type="checkbox" name="ex" value="Furniture assembly">Furniture assembly</label>
+    <label class="chk"><input type="checkbox" name="ex" value="Junk removal">Junk removal</label></div>
+   <div class="qs" data-s="6"><h3>Your contact details</h3>
+    <div class="fld"><label for="qName">Full name <span class="req">*</span></label><input id="qName" autocomplete="name" required><div class="msg">Enter your name.</div></div>
+    <div class="fld"><label for="qEmail">Email <span class="req">*</span></label><input id="qEmail" type="email" autocomplete="email" required><div class="msg">Enter a valid email.</div></div>
+    <div class="fld"><label for="qPhone">Phone</label><input id="qPhone" type="tel" autocomplete="tel"></div>
+    <div class="fld"><label for="qPref">Preferred contact</label><select id="qPref"><option>Email</option><option>Phone</option><option>Text message</option></select></div></div>
+   <div class="qs" data-s="7"><h3>Review and submit</h3><div class="review" id="qRev"></div>
+    <label class="chk fld" id="consentF"><input type="checkbox" id="qCons">I agree that MoveMatch may share these details with up to 5 matched providers to prepare quotes, and I accept the Terms and Privacy Policy.</label>
+    <div class="msg" id="consE" style="color:var(--err);font-size:13px;display:none">Please give consent to continue.</div></div>
+   <div class="qs" data-s="8" style="text-align:center"><div class="ok-ic"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="3" stroke-linecap="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h3>Request ready</h3><p class="help">This is a front-end preview: your request has been saved in this browser only. Once the MoveMatch backend is connected, it will be sent to matched providers.</p><p class="help">Reference: <b id="qRef"></b></p></div>
+   <div class="dnav" id="qNav"><button type="button" class="btn btn-o" id="qBack">Back</button><button type="button" class="btn btn-p" id="qNext">Continue</button></div>
   </form>
-</div></div>
-<div class="toast" id="toast"></div>
+ </div>
+</div>
+
+<!-- Simple modal (login / partner / support / cookies) -->
+<div class="modal" id="sm" aria-hidden="true"><div class="bd" data-close></div>
+ <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="smT"><button class="x" data-close aria-label="Close">×</button><div id="smBody"></div></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const money=n=>'$'+Math.round(n).toLocaleString();
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const money=n=>'$'+(Math.round(n/10)*10).toLocaleString();
+const today=new Date().toISOString().split('T')[0];
+let lastFocus=null;
 
-/* data */
+/* ---------- icons ---------- */
+const I={
+ home:'<path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1z"/>',
+ road:'<path d="M4 21L9 3M20 21L15 3M12 6v2M12 11v2M12 16v2"/>',
+ map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
+ globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/>',
+ house:'<path d="M4 21V10l8-6 8 6v11z"/><path d="M10 21v-6h4v6"/>',
+ office:'<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2"/>',
+ box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',
+ store:'<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 10h18M9 4v16"/>',
+ piano:'<rect x="3" y="5" width="18" height="14" rx="1"/><path d="M7 5v8M11 5v8M15 5v8M7 13v6M11 13v6M15 13v6"/>',
+ trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+ hands:'<path d="M7 11V6a2 2 0 014 0v5M11 10V4a2 2 0 014 0v7M15 9a2 2 0 014 0v5a7 7 0 01-14 0v-3a2 2 0 014 0"/>',
+ car:'<path d="M5 16l1.5-5h11L19 16"/><rect x="3" y="16" width="18" height="4" rx="1"/><circle cx="7" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/>',
+ check:'<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2h9"/>',
+ cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ calc:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M14 11h2M8 15h2M14 15h2"/>',
+ wallet:'<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M16 13h2M3 10h18"/>',
+ pin:'<path d="M12 21s-7-6.5-7-12a7 7 0 0114 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>'
+};
+const svg=(k,s=26,c='currentColor')=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[k]}</svg>`;
+
+/* ---------- data ---------- */
 const services=[
- ['🏠','Residential Moving','House, apartment, condo, studio and room relocation.',['Apartments','Houses','Condos','Studios']],
- ['🏢','Commercial Moving','Office, retail, warehouse and corporate relocation.',['Offices','Retail','Warehouses','IT equipment']],
- ['🛣️','Long-Distance Moving','Interstate and cross-country relocation with tracking.',['Interstate','Cross-country','GPS tracking']],
- ['📦','Packing & Unpacking','Full or partial packing, unpacking and supplies.',['Full pack','Partial pack','Supplies','Crating']],
- ['🏬','Storage Services','Short-term, long-term and climate-controlled storage.',['Short-term','Long-term','Climate-controlled']],
- ['🎹','Specialty Moving','Pianos, antiques, artwork, safes and heavy equipment.',['Pianos','Antiques','Art','Safes']]];
-const extras=['Loading & unloading','Furniture assembly','Vehicle transport','Junk removal','Senior relocation','Student moving','Last-minute moves','Labor-only'];
-const cos=[
- ['Swift Haul Movers','local','🚛','4.9',1240,'Austin, TX',['Same-day availability','Free wardrobe boxes','$0 cancellation 48h']],
- ['Atlas Crest Relocation','long','🌎','4.8',2890,'Nationwide',['GPS-tracked trucks','Binding estimates','Full-value protection']],
- ['BoxPro Packers','packing','📦','4.9',860,'Chicago, IL',['Custom crating','Eco packing supplies','Unpack & set-up']],
- ['Summit Office Moves','commercial','🏢','4.7',3410,'New York, NY',['After-hours moves','IT disconnect/reconnect','Project manager']],
- ['SafeKeep Storage','storage','🔐','4.8',720,'Phoenix, AZ',['Climate-controlled','24/7 CCTV','Free pickup']],
- ['Grand Ivory Specialty','specialty','🎹','5.0',1960,'Los Angeles, CA',['Piano experts','Fine-art handling','White-glove service']]];
-const plans=[['Free',0,['Basic business profile','Limited leads / month','Customer reviews']],['Starter',49,['More leads','Full business profile','Quote management','Email support']],['Professional',129,['Advanced leads','CRM & pipeline','Crew & fleet tools','Analytics'],1],['Enterprise',349,['Multi-location','Teams & roles','Route planning','API & integrations']]];
-const reviews=[['Jessica M.','Austin → Dallas','Booked in 10 minutes, the crew arrived early and nothing was damaged. Best moving experience ever.'],['Daniel R.','NYC office move','We moved 60 desks over a weekend. Monday morning everything was plugged in and working.'],['Priya S.','Seattle → Denver','The calculator was within $40 of the final price. Honest and transparent.'],['Marcus T.','Piano relocation','They moved my grandmother’s grand piano like it was made of glass.'],['Olivia K.','Student move','Cheap, fast, and they even assembled my bed. Perfect for students.'],['Hassan A.','Mover · Pro plan','Moving OS doubled our bookings in 3 months. The CRM alone is worth it.']];
-const guides=[['💰','Cost guide','How much does a local move cost in 2026?'],['🗓️','Checklist','The 8-week moving checklist that actually works'],['🛡️','Safety','How to spot moving scams and rogue movers']];
-const faqs=[['How accurate is the instant estimate?','Our estimate uses distance, home size, inventory and extras. Most customers land within 10% of their final quote, which your mover confirms after review.'],['Are the moving companies verified?','Yes. Every provider passes license, insurance and business checks before receiving leads, and is continuously rated by customers.'],['Is MoveMatch free for customers?','Completely free. You only pay the mover you choose, and you see the price before booking.'],['Can I move internationally or store my items?','Long-distance and storage providers are available now; international moves are coming soon to the UK, Canada and Australia.'],['I own a moving company — how do I join?','Pick a plan in the “For movers” section. The Free plan gets you a profile and leads right away.']];
+ ['road','Local moving','Same-city and short-distance moves, typically priced by the hour.'],
+ ['map','Long-distance moving','Moves over 100 miles, priced by weight or volume and distance.'],
+ ['house','Interstate moving','Moves across state lines with federally registered carriers.'],
+ ['globe','International moving','Overseas relocation including customs and shipping.'],
+ ['home','Residential moving','Houses, apartments, condos, studios, students and seniors.'],
+ ['office','Commercial moving','Offices, retail, warehouses and corporate relocation.'],
+ ['box','Packing','Full or partial packing, unpacking and packing materials.'],
+ ['store','Storage','Short-term, long-term and climate-controlled storage.'],
+ ['piano','Specialty moving','Pianos, antiques, fine art, safes and heavy furniture.'],
+ ['trash','Junk removal','Clear unwanted items before or after your move.'],
+ ['hands','Labor-only','Loading and unloading help when you drive the truck.'],
+ ['car','Vehicle transport','Open or enclosed shipping for cars and motorcycles.']];
+const providers=[
+ {n:'Harbor Line Movers',i:'HL',cat:['local'],area:'Greater Chicago, IL',svc:'Local, packing, assembly',est:'Hourly (non-binding)',ch:['Identity','Business','Insurance']},
+ {n:'Summit Range Relocation',i:'SR',cat:['long'],area:'Interstate · 48 states',svc:'Long-distance, storage',est:'Binding estimate',ch:['Identity','Business','USDOT/MC','Insurance']},
+ {n:'Keystone Office Moves',i:'KO',cat:['local','commercial'],area:'New York metro',svc:'Office, IT, after-hours',est:'Fixed project price',ch:['Business','Insurance']},
+ {n:'Cedar & Crate Packers',i:'CC',cat:['local'],area:'Austin, TX',svc:'Packing, crating, unpacking',est:'Itemised',ch:['Identity','Business']},
+ {n:'Bluewater Global Moving',i:'BG',cat:['intl','long'],area:'US → worldwide',svc:'International, customs, storage',est:'Binding not-to-exceed',ch:['Identity','Business','USDOT/MC']},
+ {n:'Grand Note Specialty',i:'GN',cat:['local','specialty'],area:'Los Angeles, CA',svc:'Pianos, fine art, safes',est:'Per-item',ch:['Business','Insurance']}];
+const cities=[['New York','NY'],['Los Angeles','CA'],['Chicago','IL'],['Houston','TX'],['Phoenix','AZ'],['Dallas','TX'],['Atlanta','GA'],['Miami','FL'],['Seattle','WA'],['Denver','CO'],['Boston','MA'],['San Diego','CA']];
+const zipCities=cities.map(c=>c.join(', ')).concat(['Austin, TX','San Francisco, CA','Philadelphia, PA','Nashville, TN','Portland, OR','Las Vegas, NV','Charlotte, NC','Orlando, FL','Minneapolis, MN','Salt Lake City, UT']);
+const explain=[
+ ['Full-service','Movers pack, load, transport and unload everything.',['Least effort for you','Crew handles heavy and fragile items','Packing and assembly available'],['Highest cost','Requires scheduling around crew availability']],
+ ['Moving containers','A container is dropped off; you load it, the company transports it.',['Flexible loading time','Often cheaper than full-service','Can double as storage'],['You do the loading','Needs space for the container']],
+ ['Truck rental','You rent a truck and do the move yourself.',['Usually the lowest price','Full control of timing'],['You drive and lift','Fuel, tolls and insurance are extra']],
+ ['Labor-only','Hire movers to load or unload a truck or container you arrange.',['Pairs with rental or containers','Pay only for the help you need'],['You arrange transport','Usually hourly with minimums']],
+ ['Storage','Hold belongings between moves or long-term.',['Bridges move-out and move-in dates','Climate-controlled options'],['Monthly fees add up','Access hours may be limited']],
+ ['Brokers vs carriers','A carrier owns trucks and performs the move. A broker arranges the move with a carrier.',['Brokers can find availability fast','Carriers give direct accountability','MoveMatch labels each provider type'],['A broker does not move your goods itself','Check who performs the move before booking']]];
+const stories=[['Maya R.','Studio · Chicago → Denver','Comparing three estimates side by side made it obvious which one included packing materials and which didn\'t.'],['Daniel K.','Office · 40 desks','We needed an after-hours move. Filtering by commercial providers saved us days of calls.'],['Priya S.','2-bed · Austin local','The inventory builder took ten minutes and every quote came back based on the same list.'],['Tom & Lee','Piano relocation','Finding a specialist with insurance shown up front gave us real peace of mind.'],['Grace O.','Senior move','My daughter and I could both see the booking, documents and moving-day timeline.']];
+const resources=[['check','Checklist','8-week moving checklist'],['wallet','Budget','Moving budget planner'],['box','Calculator','Packing & box calculator'],['calc','Cost guide','How moving costs are calculated'],['cal','Planner','Choosing the best moving date'],['pin','State guides','Moving guides by state']];
+const faqs=[
+ ['Is MoveMatch a moving company?','No. MoveMatch is a marketplace that connects you with independent moving companies, brokers and service providers. Each listing shows whether the provider is a carrier or a broker.'],
+ ['Is the cost calculator a quote?','No. The calculator gives an indicative range only. A binding or non-binding estimate comes from the provider after reviewing your inventory and access details.'],
+ ['How are providers verified?','Verification is broken into separate checks — identity, business registration, licence (such as USDOT/MC numbers for interstate moves) and insurance. Profiles show which checks are complete; there is no single catch-all badge.'],
+ ['What is the difference between binding and non-binding estimates?','A binding estimate fixes the price for the listed items and services. A non-binding estimate may change based on the actual weight or time. Quotes on MoveMatch state the estimate type clearly.'],
+ ['How much does it cost to use MoveMatch?','Requesting and comparing quotes is free for customers. You pay the provider you book according to their contract.'],
+ ['Can I track my move?','Tracking shows booking milestones such as crew assigned, loading, in transit and delivered. Live GPS is only shown where the provider supplies reliable tracking data.'],
+ ['What happens if something is damaged?','You can open a claim from your booking. Claims and disputes are reviewed by people and follow the provider\'s valuation coverage terms.'],
+ ['How do I join as a moving company?','Use “Apply as a Mover”. We collect business, licence and insurance details, and your profile is published only after review.']];
 
-/* render */
-$('#svc').innerHTML=services.map((s,i)=>`<div class="card tilt rv-up d${i%3}"><div class="ico">${s[0]}</div><h3>${s[1]}</h3><p>${s[2]}</p><div class="subs">${s[3].map(x=>`<span>${x}</span>`).join('')}</div><a href="#quote" class="more">Get a quote <span>→</span></a></div>`).join('');
-$('#chips').innerHTML=extras.map(e=>`<span class="chip">${e}</span>`).join('');
-const mq=['Residential','Commercial','Long-distance','Packing','Storage','Piano moving','Junk removal','Vehicle transport','Senior moves','Student moves'];
-$('#marq').innerHTML=[...mq,...mq].map(x=>`<span>${x}</span>`).join('');
-const bgs=['#ff6b2c33','#7c5cff33','#19d3c533','#ff3d7f33','#ffc53d33','#3d9bff33'];
-$('#cos').innerHTML=cos.map((c,i)=>`<div class="flip co rv-up" data-cat="${c[1]}"><div class="flip-in">
- <div class="face"><div class="co-top" style="background:linear-gradient(135deg,${bgs[i]},transparent)">${c[2]}<span class="pill badge">✓ Verified</span></div>
- <div class="co-b"><h3>${c[0]}</h3><div class="meta"><span class="stars">★★★★★ <span style="color:#fff">${c[3]}</span></span><span>📍 ${c[5]}</span></div><p style="color:var(--mut);font-size:.9rem">Avg. quote from <b style="color:#fff">${money(c[4])}</b></p></div></div>
- <div class="face back"><h3>${c[0]}</h3><ul>${c[6].map(x=>`<li>✓ ${x}</li>`).join('')}</ul><button class="btn btn-p" onclick="openModal('${c[0]}')">Request quote</button></div>
-</div></div>`).join('');
-const cats=[['all','All'],['local','Local'],['long','Long-distance'],['commercial','Commercial'],['packing','Packing'],['storage','Storage'],['specialty','Specialty']];
-$('#filt').innerHTML=cats.map((c,i)=>`<button data-f="${c[0]}" class="${i?'':'on'}">${c[1]}</button>`).join('');
-$('#filt').onclick=e=>{const b=e.target.closest('button');if(!b)return;$$('#filt button').forEach(x=>x.classList.toggle('on',x===b));$$('.co').forEach(c=>{const show=b.dataset.f==='all'||c.dataset.cat===b.dataset.f;c.classList.toggle('hide',!show);if(show){c.animate([{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'none'}],{duration:450,easing:'ease-out'})}})};
-let yearly=false;
-function renderPlans(){$('#plans').innerHTML=plans.map((p,i)=>`<div class="card plan tilt ${p[3]?'pop':''}">${p[3]?'<span class="tag" style="align-self:flex-start">Most popular</span>':''}<h3 style="margin-top:.6rem">${p[0]}</h3><div class="amt">${p[1]?money(yearly?p[1]*.8:p[1]):'$0'}<small>/mo</small></div><ul>${p[2].map(x=>`<li>${x}</li>`).join('')}</ul><button class="btn ${p[3]?'btn-p':'btn-g'}" style="justify-content:center" onclick="toast('🎉 ${p[0]} plan selected — we’ll be in touch!')">${p[1]?'Start free trial':'Join free'}</button></div>`).join('');bindTilt()}
-$('#sw').onclick=()=>{yearly=!yearly;$('#sw').classList.toggle('on',yearly);renderPlans()};
-$('#rvt').innerHTML=reviews.map(r=>`<div class="card rv"><div class="stars">★★★★★</div><p style="color:#dfe5f7;margin-top:.8rem;font-size:1.02rem">“${r[2]}”</p><div class="who"><div class="av">${r[0][0]}</div><div><b>${r[0]}</b><div style="color:var(--mut);font-size:.85rem">${r[1]}</div></div></div></div>`).join('');
-$('#guides').innerHTML=guides.map((g,i)=>`<div class="card guide tilt rv-up d${i}"><div class="gi" style="background:linear-gradient(135deg,${bgs[i]},transparent)">${g[0]}</div><div class="gb"><small>${g[1]}</small><h3 style="margin-top:.4rem">${g[2]}</h3><a class="more" href="#faq">Read guide <span>→</span></a></div></div>`).join('');
-$('#faqs').innerHTML=faqs.map((f,i)=>`<div class="q rv-up ${i?'':'open'}"><button>${f[0]}<span>+</span></button><div class="a">${f[1]}</div></div>`).join('');
-$('#faqs').onclick=e=>{const q=e.target.closest('.q');if(e.target.closest('button'))q.classList.toggle('open')};
-
-/* review slider */
-let ri=0;const per=()=>innerWidth<620?1:innerWidth<980?2:3;
-function slide(i){const max=reviews.length-per();ri=i>max?0:i<0?max:i;const w=$('.rv').offsetWidth+24;$('#rvt').style.transform=`translateX(${-ri*w}px)`;$('#dots').innerHTML=Array.from({length:max+1},(_,k)=>`<button class="${k===ri?'on':''}" onclick="slide(${k})"></button>`).join('')}
-setInterval(()=>slide(ri+1),4500);addEventListener('resize',()=>slide(ri));
-
-/* calculator */
-const sizes=[['Studio',1.6,450],['1 Bed',2.2,650],['2 Bed',3.2,950],['3 Bed',4.6,1350],['4+ Bed',6.5,1900],['Office',8,2600]];
-const ext=[['Packing',350],['Storage (1 mo)',180],['Assembly',120],['Insurance+',95],['Junk removal',150]];
-const items=[['Sofa',0,85],['Bed',0,75],['Wardrobe',0,70],['Fridge',0,90],['Piano',0,350],['Boxes (x10)',0,40]];
-let S=1,E=new Set();
-$('#size').innerHTML=sizes.map((s,i)=>`<button data-i="${i}" class="${i===S?'on':''}">${s[0]}</button>`).join('');
-$('#extras').innerHTML=ext.map((s,i)=>`<button data-i="${i}">${s[0]}</button>`).join('');
-function renderInv(){$('#inv').innerHTML=items.map((it,i)=>`<div class="it">${it[0]}<div class="qty"><button data-d="-1" data-i="${i}">−</button><b>${it[1]}</b><button data-d="1" data-i="${i}">+</button></div></div>`).join('')}
-renderInv();
-$('#size').onclick=e=>{const b=e.target.closest('button');if(!b)return;S=+b.dataset.i;$$('#size button').forEach(x=>x.classList.toggle('on',x===b));calc()};
-$('#extras').onclick=e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;E.has(i)?E.delete(i):E.add(i);b.classList.toggle('on');calc()};
-$('#inv').onclick=e=>{const b=e.target.closest('button');if(!b)return;const it=items[b.dataset.i];it[1]=Math.max(0,it[1]+ +b.dataset.d);renderInv();calc()};
-$('#dist').oninput=calc;
-let shown=0;
-function calc(){
- const d=+$('#dist').value;$('#distV').textContent=d.toLocaleString();
- const base=sizes[S][2],travel=d<=50?d*4:d<=500?200+(d-50)*1.6:920+(d-500)*.95;
- const inv=items.reduce((a,i)=>a+i[1]*i[2],0),ex=[...E].reduce((a,i)=>a+ext[i][1],0);
- const total=base+travel+inv+ex,hours=sizes[S][1]+items.reduce((a,i)=>a+i[1]*.25,0)+(d<=50?d/30:d/55);
- $('#bd').innerHTML=`<div>Base (${sizes[S][0]})<b>${money(base)}</b></div><div>Distance<b>${money(travel)}</b></div><div>Inventory<b>${money(inv)}</b></div><div>Extras<b>${money(ex)}</b></div>`;
- $('#range').textContent=`Typical range ${money(total*.9)} – ${money(total*1.12)}`;
- $('#hrs').textContent=hours.toFixed(1);$('#ring').style.setProperty('--p',Math.min(100,hours/40*100));
- const from=shown,t0=performance.now();(function tick(t){const k=Math.min(1,(t-t0)/500);shown=from+(total-from)*(1-Math.pow(1-k,3));$('#price').textContent=money(shown);if(k<1)requestAnimationFrame(tick)})(t0);
-}
-calc();
-
-/* hero form → calculator */
-$('#heroForm').onsubmit=e=>{e.preventDefault();$('#cFrom').value=$('#hFrom').value;$('#cTo').value=$('#hTo').value;const s=+$('#hSize').value;$$('#size button')[s].click();$('#quote').scrollIntoView();toast('✨ Here’s your instant estimate!')};
-$('#hDate').min=new Date().toISOString().split('T')[0];
-
-/* modal / toast */
-function openModal(name){$('#mSum').textContent=name?`Request a quote from ${name}.`:`Estimated ${$('#price').textContent} — we’ll match you with up to 3 verified movers.`;$('#modal').classList.add('on')}
-function closeModal(){$('#modal').classList.remove('on')}
-$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
-$('#bookForm').onsubmit=e=>{e.preventDefault();closeModal();e.target.reset();toast('✅ Request sent! Movers will contact you shortly.')};
-$('#news').onsubmit=e=>{e.preventDefault();e.target.reset();toast('📬 Subscribed! Moving tips are on the way.')};
-let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3200)}
-
-/* hero word rotation */
-const words=['home','office','piano','life','apartment'];let wi=0;
-setInterval(()=>{wi=(wi+1)%words.length;$('#rot').innerHTML=`<span>${words[wi]}</span>`},2200);
-
-/* tilt + spotlight */
-function bindTilt(){$$('.tilt').forEach(c=>{c.onmousemove=e=>{const r=c.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;c.style.setProperty('--mx',x+'px');c.style.setProperty('--my',y+'px');c.style.transform=`perspective(900px) rotateX(${(y/r.height-.5)*-8}deg) rotateY(${(x/r.width-.5)*8}deg) translateY(-6px)`};c.onmouseleave=()=>c.style.transform=''})}
-bindTilt();renderPlans();
-
-/* reveal + counters */
-const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add('in');io.unobserve(e.target);
- const n=e.target.querySelector('[data-n]');if(n){const T=+n.dataset.n,t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/1800);n.textContent=Math.round(T*(1-Math.pow(1-k,3))).toLocaleString()+(T>=1000?'+':'');if(k<1)requestAnimationFrame(f)})(t0)}}),{threshold:.15});
-$$('.rv-up').forEach(el=>io.observe(el));
-
-/* nav, progress, glow */
-addEventListener('scroll',()=>{$('#nav').classList.toggle('s',scrollY>30);$('#prog').style.width=scrollY/(document.body.scrollHeight-innerHeight)*100+'%'});
-addEventListener('mousemove',e=>{$('#glow').style.left=e.clientX+'px';$('#glow').style.top=e.clientY+'px'});
-$('#burger').onclick=()=>$('#links').classList.toggle('on');
-$$('#links a').forEach(a=>a.onclick=()=>$('#links').classList.remove('on'));
+/* ---------- render ---------- */
+$('#svcGrid').innerHTML=services.map((s,i)=>`<a href="#" data-quote data-svc="${s[1]}" class="card svc rv-in" style="transition-delay:${(i%4)*60}ms"><div class="ic">${svg(s[0])}</div><h3>${s[1]}</h3><p>${s[2]}</p><span class="go">Get quotes <span aria-hidden="true">→</span></span></a>`).join('');
+const pcats=[['all','All'],['local','Local'],['long','Long-distance'],['intl','International'],['commercial','Commercial'],['specialty','Specialty']];
+$('#pFilt').innerHTML=pcats.map((c,i)=>`<button class="chipb" aria-pressed="${!i}" data-c="${c[0]}">${c[1]}</button>`).join('');
+$('#pGrid').innerHTML=providers.map((p,i)=>`<article class="card pcard hov rv-in" data-cat="${p.cat.join(' ')}" style="transition-delay:${(i%3)*80}ms">
+ <div class="top"><div class="plogo" aria-hidden="true">${p.i}</div><div><span class="sample">Sample profile</span><h3>${p.n}</h3></div></div>
+ <div class="pbody"><div class="badges">${p.ch.map(c=>`<span class="bdg v">✓ ${c} verified</span>`).join('')}</div>
+ <dl class="kv"><dt>Area</dt><dd><b>${p.area}</b></dd><dt>Services</dt><dd><b>${p.svc}</b></dd><dt>Estimate</dt><dd><b>${p.est}</b></dd><dt>Reviews</dt><dd><b>No verified reviews yet</b></dd></dl></div>
+ <div class="pfoot"><label class="cmp"><input type="checkbox" data-cmp="${i}">Compare</label><button class="btn btn-o" style="min-height:40px" data-profile="${i}">Profile</button><button class="btn btn-p" style="min-height:40px" data-quote>Get quote</button></div>
+</article>`).join('');
+$('#cityGrid').innerHTML=cities.map((c,i)=>`<a href="#" class="card city rv-in" data-city="${c.join(', ')}" style="transition-delay:${(i%4)*50}ms"><div><b>${c[0]}</b><small>${c[1]} · Movers launching soon</small></div><span class="ar">${svg('pin',18,'#102A43')}</span></a>`).join('');
+$('#tabs').innerHTML=explain.map((e,i)=>`<button class="tab" role="tab" id="t${i}" aria-selected="${!i}" aria-controls="tp${i}" tabindex="${i?-1:0}">${e[0]}</button>`).join('');
+$('#tpanels').innerHTML=explain.map((e,i)=>`<div class="tpanel" role="tabpanel" id="tp${i}" aria-labelledby="t${i}" ${i?'hidden':''}><div><h3 style="font-size:24px;margin-bottom:10px">${e[0]}</h3><p class="lead">${e[1]}</p></div><div><h4 style="margin-bottom:10px">Advantages</h4><ul>${e[2].map(x=>`<li>${x}</li>`).join('')}</ul><h4 style="margin:18px 0 10px">Things to consider</h4><ul class="con">${e[3].map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`).join('');
+$('#rvTrack').innerHTML=stories.map(s=>`<figure class="card rv"><div class="stars" aria-label="5 out of 5">★★★★★</div><blockquote><p>“${s[2]}”</p></blockquote><figcaption class="who"><b>${s[0]}</b>${s[1]}</figcaption></figure>`).join('');
+$('#resGrid').innerHTML=resources.map((r,i)=>`<a href="#" class="card res-c rv-in" data-res="${r[2]}" style="transition-delay:${(i%3)*70}ms"><div class="art">${svg(r[0],80,'#102A43')}</div><small>${r[1]}</small><h3>${r[2]}</h3></a>`).join('');
+$('#faqList').innerHTML=faqs.map((f,i)=>`<div class="qa ${i?'':'open'}"><h3><button aria-expanded="${!i}" aria-controls="fa${i}" id="fq${i}">${f[0]}<span class="pl" aria-hidden="true"></span></button></h3><div class="ans" id="fa${i}" role="region" aria-labelledby="fq${i}"><div>${f[1]}</div></div></div>`).join('');
+$('#dmenu').innerHTML=$$('.nav>li').map(li=>`<details><summary>${li.querySelector('button').firstChild.textContent.trim()}</summary>${[...li.querySelectorAll('.mega a')].map(a=>a.outerHTML).join('')}</details>`).join('');
 $('#yr').textContent=new Date().getFullYear();
-addEventListener('load',()=>slide(0));
+
+/* ---------- toast ---------- */
+let tt;function toast(m,c='var(--ok)'){const t=$('#toast');t.textContent=m;t.style.borderLeftColor=c;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3600)}
+
+/* ---------- announcement ---------- */
+try{if(localStorage.getItem('mm_ann'))$('#ann').classList.add('hide')}catch(e){}
+$('#annX').onclick=()=>{$('#ann').classList.add('hide');try{localStorage.setItem('mm_ann',1)}catch(e){}};
+
+/* ---------- header / mega ---------- */
+addEventListener('scroll',()=>{$('#hdr').classList.toggle('scr',scrollY>10);$('#mbar').classList.toggle('on',scrollY>600)},{passive:true});
+const megaBtns=$$('.nav>li>button');
+function closeMegas(except){megaBtns.forEach(b=>{if(b!==except){b.setAttribute('aria-expanded','false');$('#'+b.getAttribute('aria-controls')).classList.remove('open')}})}
+megaBtns.forEach(b=>{
+ const m=$('#'+b.getAttribute('aria-controls'));let ht;
+ const open=()=>{closeMegas(b);b.setAttribute('aria-expanded','true');m.classList.add('open')};
+ const close=()=>{b.setAttribute('aria-expanded','false');m.classList.remove('open')};
+ b.onclick=()=>b.getAttribute('aria-expanded')==='true'?close():open();
+ const li=b.parentElement;
+ li.onmouseenter=()=>{if(matchMedia('(hover:hover)').matches){clearTimeout(ht);open()}};
+ li.onmouseleave=()=>{ht=setTimeout(close,140)};
+ b.onkeydown=e=>{if(e.key==='ArrowDown'){e.preventDefault();open();m.querySelector('a').focus()}};
+ m.addEventListener('click',e=>{if(e.target.closest('a'))close()});
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.nav'))closeMegas()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const o=megaBtns.find(b=>b.getAttribute('aria-expanded')==='true');closeMegas();if(o)o.focus();closeAll()}});
+
+/* ---------- overlay helpers (drawer + modals) ---------- */
+function openOv(el){lastFocus=document.activeElement;el.classList.add('open');el.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';setTimeout(()=>{const f=el.querySelector('input,select,button:not(.x),a');(f||el.querySelector('.x')).focus()},50)}
+function closeOv(el){if(!el.classList.contains('open'))return;el.classList.remove('open');el.setAttribute('aria-hidden','true');if(!$$('.modal.open,.drawer.open').length)document.body.style.overflow='';lastFocus&&lastFocus.focus()}
+function closeAll(){$$('.modal.open,.drawer.open').forEach(closeOv)}
+$$('[data-close]').forEach(b=>b.onclick=()=>closeOv(b.closest('.modal,.drawer')));
+document.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const o=$('.modal.open .dlg,.drawer.open .pn');if(!o)return;const f=[...o.querySelectorAll('a,button,input,select,textarea')].filter(x=>x.offsetParent);const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}});
+$('#burger').onclick=()=>{openOv($('#drawer'));$('#burger').setAttribute('aria-expanded','true')};
+$('#drawer').addEventListener('click',e=>{if(e.target.closest('a')){closeOv($('#drawer'));$('#burger').setAttribute('aria-expanded','false')}});
+
+/* ---------- autocomplete ---------- */
+function validLoc(v){v=v.trim();return /^\d{5}$/.test(v)||zipCities.some(c=>c.toLowerCase()===v.toLowerCase())||/^[a-z .'-]{2,},\s?[a-z]{2}$/i.test(v)}
+function ac(input){
+ const ul=document.createElement('ul');ul.setAttribute('role','listbox');ul.id=input.id+'L';ul.hidden=true;input.after(ul);input.setAttribute('aria-controls',ul.id);let idx=-1,items=[];
+ const show=()=>{const v=input.value.trim().toLowerCase();items=v?zipCities.filter(c=>c.toLowerCase().includes(v)).slice(0,6):[];idx=-1;ul.innerHTML=items.map((c,i)=>`<li role="option" id="${ul.id}${i}">${c}</li>`).join('');ul.hidden=!items.length;input.setAttribute('aria-expanded',!!items.length)};
+ const pick=c=>{input.value=c;ul.hidden=true;input.setAttribute('aria-expanded','false');input.closest('.fld').classList.remove('bad')};
+ input.addEventListener('input',show);
+ input.addEventListener('keydown',e=>{if(ul.hidden)return;if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();idx=(idx+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;[...ul.children].forEach((li,i)=>li.setAttribute('aria-selected',i===idx));input.setAttribute('aria-activedescendant',ul.id+idx)}else if(e.key==='Enter'&&idx>-1){e.preventDefault();pick(items[idx])}else if(e.key==='Escape'){ul.hidden=true;e.stopPropagation()}});
+ ul.addEventListener('mousedown',e=>{const li=e.target.closest('li');if(li){e.preventDefault();pick(li.textContent)}});
+ input.addEventListener('blur',()=>setTimeout(()=>ul.hidden=true,100));
+}
+['hFrom','hTo','qFrom','qTo'].forEach(id=>ac($('#'+id)));
+['hDate','cDate','qDate'].forEach(id=>$('#'+id).min=today);
+function check(id,ok){const f=$('#'+id).closest('.fld');f.classList.toggle('bad',!ok);$('#'+id).setAttribute('aria-invalid',!ok);return ok}
+
+/* ---------- hero form ---------- */
+$('#heroForm').onsubmit=e=>{e.preventDefault();
+ const a=check('hFrom',validLoc($('#hFrom').value)),b=check('hTo',validLoc($('#hTo').value));
+ if(!a||!b){(a?$('#hTo'):$('#hFrom')).focus();return}
+ Q.from=$('#hFrom').value;Q.to=$('#hTo').value;Q.date=$('#hDate').value;Q.prop=$('#hProp').selectedIndex;openQuote(2)};
+
+/* ---------- services → quote ---------- */
+document.addEventListener('click',e=>{
+ const q=e.target.closest('[data-quote]');if(q){e.preventDefault();if(q.dataset.svc)Q.svc=q.dataset.svc;openQuote(1);return}
+ const c=e.target.closest('[data-city]');if(c){e.preventDefault();Q.to=c.dataset.city;openQuote(1);return}
+ const r=e.target.closest('[data-res]');if(r){e.preventDefault();showRes(r.dataset.res);return}
+ const p=e.target.closest('[data-profile]');if(p){showProfile(+p.dataset.profile);return}
+ if(e.target.closest('[data-login]')){showLogin();return}
+ if(e.target.closest('[data-support]')){e.preventDefault();showSupport();return}
+ const mf=e.target.closest('[data-f]');if(mf){const b=$(`#pFilt [data-c="${mf.dataset.f}"]`);b&&b.click()}
+});
+
+/* ---------- provider filter + compare ---------- */
+$('#pFilt').onclick=e=>{const b=e.target.closest('button');if(!b)return;$$('#pFilt button').forEach(x=>x.setAttribute('aria-pressed',x===b));let n=0;
+ $$('.pcard').forEach(c=>{const s=b.dataset.c==='all'||c.dataset.cat.split(' ').includes(b.dataset.c);c.classList.toggle('out',!s);if(s){n++;if(!RM)c.animate([{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}],{duration:280,easing:'ease-out'})}});
+ $('#pEmpty').style.display=n?'none':'block'};
+let sel=new Set();
+function renderCmp(){
+ const list=sel.size?[...sel].map(i=>providers[i]):providers.slice(0,3);
+ const rows=[['Provider type',p=>p.est.includes('Binding')?'Carrier':'Carrier'],['Services',p=>p.svc],['Service area',p=>p.area],['Estimate method',p=>p.est],['Included',p=>'Loading, transport, unloading'],['Additional charges',p=>'<span class="p">Stairs, long carry, packing</span>'],['Protection options',p=>'Released value · Full value'],['Availability',p=>'Shown after request'],['Reviews',p=>'No verified reviews yet'],['Verification',p=>p.ch.map(c=>`<span class="y">✓ ${c}</span>`).join('<br>')]];
+ $('#cmpTbl').innerHTML=`<caption class="sr">Provider comparison</caption><thead><tr><th scope="col">Feature</th>${list.map(p=>`<th scope="col">${p.n}<br><span class="sample">Sample</span></th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><th scope="row">${r[0]}</th>${list.map(p=>`<td>${r[1](p)}</td>`).join('')}</tr>`).join('')}</tbody>`;
+ if(!RM)$$('#cmpTbl td').forEach((td,i)=>td.animate([{opacity:0},{opacity:1}],{duration:300,delay:(i%list.length)*60}));
+}
+$('#pGrid').addEventListener('change',e=>{const c=e.target.closest('[data-cmp]');if(!c)return;const i=+c.dataset.cmp;
+ if(c.checked){if(sel.size>=3){c.checked=false;toast('You can compare up to 3 providers.','var(--warn)');return}sel.add(i)}else sel.delete(i);
+ $('#cmpTxt').textContent=`${sel.size} selected`;$('#cmpbar').classList.toggle('on',sel.size>0);renderCmp()});
+renderCmp();
+
+/* ---------- calculator ---------- */
+const base=[[420,3],[620,4],[900,5.5],[1300,7],[1850,9],[2400,10]];
+const exP={packing:[.35,2],storage:[160,0],specialty:[280,1],assembly:[140,1]};
+function calc(){
+ const p=$('#cProp').selectedIndex,d=+$('#cDist').value,acc=+$('#cAccess [aria-pressed=true]').dataset.v;
+ $('#cDistV').textContent=d.toLocaleString();
+ let [b,h]=base[p];const travel=d<=60?d*3.2:d<=600?190+(d-60)*1.45:975+(d-600)*.85;
+ let access=b*[0,.12,.25][acc],extras=0,eh=0;
+ $$('#cExtra [aria-pressed=true]').forEach(x=>{const v=exP[x.dataset.v];extras+=v[0]<1?b*v[0]:v[0];eh+=v[1]});
+ const dt=$('#cDate').value?new Date($('#cDate').value):new Date(),m=dt.getMonth(),dow=dt.getDay();
+ const season=(m>=4&&m<=8?.15:0)+(dow===0||dow===6||dt.getDate()>=28?.08:0);
+ const total=(b+travel+access+extras)*(1+season);
+ $('#cRange').textContent=`${money(total*.85)} – ${money(total*1.2)}`;
+ $('#cHrs').textContent=`Approx. ${(h+eh+(d<=60?d/25:d/50)).toFixed(0)} working hours`;
+ $('#cRows').innerHTML=`<div>Property size<b>${$('#cProp').value?$('#cProp').selectedOptions[0].text:''}</b></div><div>Distance & travel<b>${money(travel)}</b></div><div>Access conditions<b>${money(access)}</b></div><div>Services<b>${money(extras)}</b></div><div>Date & season<b>${season?'+'+Math.round(season*100)+'%':'Standard'}</b></div>`;
+ $('#cMeter').style.width=Math.min(100,20+season*300)+'%';
+}
+$$('#cAccess .opt').forEach(b=>b.onclick=()=>{$$('#cAccess .opt').forEach(x=>x.setAttribute('aria-pressed',x===b));calc()});
+$$('#cExtra .opt').forEach(b=>b.onclick=()=>{b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')!=='true');calc()});
+['cProp','cDist','cDate'].forEach(id=>$('#'+id).addEventListener('input',calc));calc();
+
+/* ---------- tabs ---------- */
+const tabs=$$('.tab');
+function selTab(t){tabs.forEach((x,i)=>{const on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;$('#tp'+i).hidden=!on})}
+tabs.forEach((t,i)=>{t.onclick=()=>selTab(t);t.onkeydown=e=>{let j=e.key==='ArrowRight'?i+1:e.key==='ArrowLeft'?i-1:null;if(j===null)return;t=tabs[(j+tabs.length)%tabs.length];selTab(t);t.focus()}});
+
+/* ---------- reviews carousel ---------- */
+let ri=0,rTimer;const per=()=>innerWidth<=620?1:innerWidth<=900?2:3;
+function slide(i){const max=stories.length-per();ri=i>max?0:i<0?max:i;const w=$('.rv').offsetWidth+20;$('#rvTrack').style.transform=`translateX(${-ri*w}px)`;
+ $('#rvPg').innerHTML=Array.from({length:max+1},(_,k)=>`<button aria-label="Go to slide ${k+1}" ${k===ri?'aria-current="true"':''} data-k="${k}"></button>`).join('')}
+$('#rvPg').onclick=e=>{const b=e.target.closest('button');if(b)slide(+b.dataset.k)};
+$('#rvP').onclick=()=>slide(ri-1);$('#rvN').onclick=()=>slide(ri+1);
+const rvObs=new IntersectionObserver(([en])=>{clearInterval(rTimer);if(en.isIntersecting&&!RM)rTimer=setInterval(()=>slide(ri+1),5000)});rvObs.observe($('.rv-wrap'));
+$('.rv-wrap').addEventListener('mouseenter',()=>clearInterval(rTimer));
+addEventListener('resize',()=>slide(ri));slide(0);
+
+/* ---------- FAQ ---------- */
+$('#faqList').onclick=e=>{const b=e.target.closest('button');if(!b)return;const qa=b.closest('.qa'),o=!qa.classList.contains('open');qa.classList.toggle('open',o);b.setAttribute('aria-expanded',o)};
+$('#faqQ').addEventListener('input',e=>{const v=e.target.value.toLowerCase();let n=0;$$('.qa').forEach(q=>{const s=q.textContent.toLowerCase().includes(v);q.style.display=s?'':'none';n+=s});$('#faqEmpty').style.display=n?'none':'block'});
+
+/* ---------- quote journey ---------- */
+const Q={from:'',to:'',date:'',prop:1,svc:''};
+const inv=[['Sofa',0],['Bed',0],['Wardrobe',0],['Dining table',0],['Refrigerator',0],['Washer/dryer',0],['TV',0],['Boxes',10]];
+const qInvR=()=>$('#qInv').innerHTML=inv.map((it,i)=>`<div class="it"><span>${it[0]}</span><div class="qty"><button type="button" aria-label="Decrease ${it[0]}" data-q="${i}" data-d="-1">−</button><output aria-live="polite">${it[1]}</output><button type="button" aria-label="Increase ${it[0]}" data-q="${i}" data-d="1">+</button></div></div>`).join('');
+qInvR();
+$('#qInv').onclick=e=>{const b=e.target.closest('button');if(!b)return;const it=inv[b.dataset.q];it[1]=Math.max(0,it[1]+(+b.dataset.d)*(it[0]==='Boxes'?5:1));b.parentElement.querySelector('output').textContent=it[1]};
+let step=1;const TOT=7;
+function showStep(s){step=s;$$('.qs').forEach(x=>x.classList.toggle('on',+x.dataset.s===s));
+ $('#qProg').style.width=Math.min(100,(s-1)/TOT*100+ (s>TOT?0:100/TOT))+'%';
+ $('#qStepI').textContent=s<=TOT?`Step ${s} of ${TOT}`:'Complete';
+ $('#qBack').style.visibility=s>1&&s<=TOT?'visible':'hidden';
+ $('#qNext').textContent=s===TOT?'Submit request':s>TOT?'Done':'Continue';
+ if(s===TOT)buildReview();
+ const f=$(`.qs[data-s="${s}"]`).querySelector('input,select');f&&setTimeout(()=>f.focus(),60);
+ try{localStorage.setItem('mm_quote_draft',JSON.stringify({step:s,...collect()}))}catch(e){}
+}
+function collect(){return{from:$('#qFrom').value,to:$('#qTo').value,date:$('#qDate').value,flex:$('#qFlex').value,prop:$('#qProp').value,access:$('#qAccess').value,inv:inv.filter(i=>i[1]).map(i=>i.join(' × ')),extras:$$('[name=ex]:checked').map(x=>x.value),name:$('#qName').value,email:$('#qEmail').value,phone:$('#qPhone').value,pref:$('#qPref').value}}
+function buildReview(){const d=collect();$('#qRev').innerHTML=[['From',d.from],['To',d.to],['Date',d.date+' ('+d.flex+')'],['Property',d.prop],['Access',d.access],['Items',d.inv.join(', ')||'Not specified'],['Extras',d.extras.join(', ')||(Q.svc||'None')],['Contact',d.name+' · '+d.email]].map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')}
+function valid(s){
+ if(s===1){const a=check('qFrom',validLoc($('#qFrom').value)),b=check('qTo',validLoc($('#qTo').value));return a&&b}
+ if(s===2)return check('qDate',!!$('#qDate').value&&$('#qDate').value>=today);
+ if(s===6){const a=check('qName',$('#qName').value.trim().length>1),b=check('qEmail',/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($('#qEmail').value));return a&&b}
+ if(s===7){const ok=$('#qCons').checked;$('#consE').style.display=ok?'none':'block';return ok}
+ return true}
+let submitting=false;
+$('#qNext').onclick=()=>{
+ if(step>TOT){closeOv($('#qm'));return}
+ if(!valid(step)){const bad=$('.qs.on .fld.bad input');bad&&bad.focus();return}
+ if(step===TOT){if(submitting)return;submitting=true;const b=$('#qNext');b.classList.add('loading');
+  setTimeout(()=>{b.classList.remove('loading');submitting=false;const ref='MM-'+Date.now().toString(36).toUpperCase().slice(-6);$('#qRef').textContent=ref;
+   try{localStorage.setItem('mm_quote_'+ref,JSON.stringify(collect()));localStorage.removeItem('mm_quote_draft')}catch(e){}
+   showStep(TOT+1);toast('Quote request saved — reference '+ref)},900);return}
+ showStep(step+1)};
+$('#qBack').onclick=()=>showStep(Math.max(1,step-1));
+$('#qf').onsubmit=e=>{e.preventDefault();$('#qNext').click()};
+$('#qf').addEventListener('input',e=>{const f=e.target.closest('.fld.bad');if(f)f.classList.remove('bad')});
+function openQuote(s){
+ if(Q.from)$('#qFrom').value=Q.from;if(Q.to)$('#qTo').value=Q.to;if(Q.date)$('#qDate').value=Q.date;$('#qProp').selectedIndex=Q.prop;
+ if(Q.svc){const map={'Packing':'Packing','Storage':'Storage','Specialty moving':'Specialty items','Junk removal':'Junk removal'};$$('[name=ex]').forEach(x=>{if(x.value===map[Q.svc])x.checked=true})}
+ if(step>TOT){$('#qf').reset();$('#qProp').selectedIndex=Q.prop;inv.forEach(i=>i[1]=i[0]==='Boxes'?10:0);qInvR()}
+ openOv($('#qm'));showStep(s);if(s===2&&!Q.date)showStep(2)}
+
+/* ---------- simple modals ---------- */
+function sm(html){$('#smBody').innerHTML=html;openOv($('#sm'))}
+function formSm(title,sub,fields,btn,msg){sm(`<h2 id="smT" style="font-size:24px;margin-bottom:6px">${title}</h2><p class="help" style="margin-bottom:18px">${sub}</p><form id="smF" novalidate style="display:grid;gap:12px">${fields.map((f,i)=>`<div class="fld"><label for="sf${i}">${f[0]}${f[2]?' <span class="req">*</span>':''}</label>${f[1]==='textarea'?`<textarea id="sf${i}" rows="4" ${f[2]?'required':''}></textarea>`:f[1]==='select'?`<select id="sf${i}">${f[3].map(o=>`<option>${o}</option>`).join('')}</select>`:`<input id="sf${i}" type="${f[1]}" ${f[2]?'required':''}>`}<div class="msg">This field is required${f[1]==='email'?' — enter a valid email':''}.</div></div>`).join('')}<button class="btn btn-p">${btn}</button></form>`);
+ $('#smF').onsubmit=e=>{e.preventDefault();let ok=true;$$('#smF [required]').forEach(x=>{const v=x.type==='email'?/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(x.value):x.value.trim();x.closest('.fld').classList.toggle('bad',!v);if(!v&&ok){ok=false;x.focus()}});if(!ok)return;const b=e.target.querySelector('.btn');b.classList.add('loading');setTimeout(()=>{closeOv($('#sm'));toast(msg)},800)}}
+function showLogin(){formSm('Log in to MoveMatch','Access your quotes, bookings, documents and tracking.',[['Email','email',1],['Password','password',1]],'Log in','Account login will be available once the customer dashboard is connected.')}
+function showSupport(){formSm('Contact support','Questions, claims, complaints or provider reports. A person reviews every claim and complaint.',[['Topic','select',0,['General question','Booking support','Claim','Complaint','Report a provider']],['Email','email',1],['Message','textarea',1]],'Send message','Message ready — support inbox connects with the backend.')}
+$('#applyBtn').onclick=()=>formSm('Apply as a mover','Profiles are published only after verification and review.',[['Legal business name','text',1],['Contact person','text',1],['Email','email',1],['Phone','tel',1],['Provider type','select',0,['Carrier','Broker','Local mover','Storage provider','Service partner']],['USDOT / MC number (if interstate)','text',0],['Service areas','text',1]],'Submit application','Application saved — verification team will review it.');
+function showProfile(i){const p=providers[i];sm(`<span class="sample">Sample profile</span><div style="display:flex;gap:14px;align-items:center;margin:12px 0"><div class="plogo">${p.i}</div><h2 id="smT" style="font-size:24px">${p.n}</h2></div><div class="badges">${p.ch.map(c=>`<span class="bdg v">✓ ${c} verified</span>`).join('')}</div><dl class="kv" style="margin:16px 0"><dt>Coverage</dt><dd><b>${p.area}</b></dd><dt>Services</dt><dd><b>${p.svc}</b></dd><dt>Estimate type</dt><dd><b>${p.est}</b></dd><dt>Reviews</dt><dd><b>No verified reviews yet</b></dd></dl><p class="help">Full profiles include licences, insurance details, gallery, FAQs and a report-provider option.</p><div style="display:flex;gap:10px;margin-top:18px"><button class="btn btn-p" data-quote>Request a quote</button><button class="btn btn-o" data-support>Report provider</button></div>`)}
+function showRes(name){
+ if(name.includes('checklist')){const t=[['8 weeks','Research movers, set a budget, start decluttering'],['6 weeks','Request and compare quotes, order supplies'],['4 weeks','Book your mover, notify utilities and address changes'],['2 weeks','Pack non-essentials, confirm dates and access'],['1 week','Pack remaining rooms, prepare an essentials bag'],['Moving day','Walk through with crew, check inventory, sign paperwork'],['After','Unpack priorities, check for damage, leave a review']];
+  sm(`<h2 id="smT" style="font-size:24px;margin-bottom:14px">${name}</h2><div style="display:grid;gap:10px">${t.map((x,i)=>`<label class="chk" style="border:1px solid var(--n3);border-radius:10px;padding:12px"><input type="checkbox"><span><b style="color:var(--navy)">${x[0]}</b><br>${x[1]}</span></label>`).join('')}</div>`)}
+ else if(name.includes('box')){sm(`<h2 id="smT" style="font-size:24px;margin-bottom:14px">${name}</h2><div class="fld"><label for="bxR">Number of rooms</label><input id="bxR" type="number" min="1" max="15" value="3"></div><div class="review" id="bxO" style="margin-top:14px"></div>`);const u=()=>{const r=Math.max(1,+$('#bxR').value||1);$('#bxO').innerHTML=[['Small boxes',r*8],['Medium boxes',r*6],['Large boxes',r*4],['Wardrobe boxes',Math.ceil(r/2)],['Packing tape (rolls)',Math.ceil(r*1.5)],['Bubble wrap (ft)',r*25]].map(x=>`<div><span>${x[0]}</span><b>${x[1]}</b></div>`).join('')};$('#bxR').oninput=u;u()}
+ else if(name.includes('budget')){const cats=['Moving service','Packing','Storage','Travel','Supplies','Cleaning','Utilities','Valuation coverage'];sm(`<h2 id="smT" style="font-size:24px;margin-bottom:14px">${name}</h2><div style="display:grid;gap:8px">${cats.map((c,i)=>`<div class="fld" style="display:flex;align-items:center;gap:10px"><label for="bg${i}" style="flex:1;margin:0">${c}</label><input id="bg${i}" type="number" min="0" value="0" style="width:120px"></div>`).join('')}</div><div class="review" style="margin-top:14px"><div><span>Subtotal</span><b id="bgS">$0</b></div><div><span>Contingency (10%)</span><b id="bgC">$0</b></div><div><span>Total</span><b id="bgT">$0</b></div></div>`);const u=()=>{const s=cats.reduce((a,_,i)=>a+(+$('#bg'+i).value||0),0);$('#bgS').textContent='$'+s.toLocaleString();$('#bgC').textContent='$'+Math.round(s*.1).toLocaleString();$('#bgT').textContent='$'+Math.round(s*1.1).toLocaleString()};$$('#smBody input').forEach(x=>x.oninput=u)}
+ else{sm(`<h2 id="smT" style="font-size:24px;margin-bottom:10px">${name}</h2><p class="help">This guide will be published in the resources hub. Meanwhile, try the cost calculator or start a quote.</p><div style="display:flex;gap:10px;margin-top:18px"><a href="#calculator" class="btn btn-o" data-close>Open calculator</a><button class="btn btn-p" data-quote>Start a quote</button></div>`);$$('#smBody [data-close]').forEach(b=>b.onclick=()=>closeOv($('#sm')))}
+}
+$('#sm').addEventListener('click',e=>{if(e.target.closest('[data-quote]'))closeOv($('#sm'))});
+$('#ckBtn').onclick=()=>sm(`<h2 id="smT" style="font-size:24px;margin-bottom:12px">Cookie preferences</h2><label class="chk"><input type="checkbox" checked disabled>Essential (always on)</label><label class="chk" style="margin-top:8px"><input type="checkbox" id="ckA">Analytics</label><label class="chk" style="margin-top:8px"><input type="checkbox" id="ckM">Marketing</label><button class="btn btn-p" style="margin-top:18px" id="ckS">Save preferences</button>`)||($('#ckS').onclick=()=>{try{localStorage.setItem('mm_ck',JSON.stringify({a:$('#ckA').checked,m:$('#ckM').checked}))}catch(e){}closeOv($('#sm'));toast('Cookie preferences saved')});
+
+/* ---------- reveal ---------- */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+$$('.rv-in,#steps').forEach(el=>io.observe(el));
+if(RM)$$('.rv-in,#steps').forEach(el=>el.classList.add('in'));
 </script>
 </body>
 </html>
