@@ -592,3 +592,27 @@ tbody tr:hover td,tbody tr:hover th{background:#FBFCFD}
 @media(max-width:1500px){.hd-r .btn-o.hide-md{display:none}}
 .choice{grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr))}.choice>*{min-width:0}
 .choice label{position:relative}.choice input{left:8px;top:8px;width:1px;height:1px}
+/* Super Admin */
+.sa{display:grid;grid-template-columns:270px 1fr;min-height:calc(100vh - 78px);background:var(--n1)}
+.sa-side{background:var(--navy);color:var(--n3);padding:16px 10px;position:sticky;top:66px;height:calc(100vh - 66px);overflow:auto}
+.sa-side input{width:100%;min-height:40px;border-radius:8px;border:1px solid var(--n6);background:rgba(255,255,255,.06);color:#fff;padding:0 12px;margin-bottom:10px}
+.sa-link{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:14px;color:var(--n3);transition:background var(--t1),color var(--t1)}
+.sa-link:hover{background:rgba(255,255,255,.08);color:#fff}
+.sa-link.on{background:var(--teal);color:var(--navy);font-weight:600}
+.sa-link.sa-locked{opacity:.45}.sa-hide{display:none}
+.sa-main{padding:24px clamp(16px,3vw,36px);min-width:0}
+.sa-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.sa-top h1{font-size:28px;margin-right:auto}
+.sa-top form{display:flex;gap:6px}
+.sa-top input,.sa-top select{min-height:42px;border:1.5px solid var(--n3);border-radius:10px;padding:0 12px;background:#fff}
+.sa-kpi b{display:block;font:800 24px var(--fh);color:var(--navy);margin:4px 0}
+.sa-kpi{padding:18px}
+.sa-h{font-size:18px;margin:22px 0 12px}
+.sa-filters,.sa-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.sa-q{flex:1;min-width:200px;min-height:42px;border:1.5px solid var(--n3);border-radius:10px;padding:0 12px}
+#saBody table{min-width:640px;font-size:14px}
+#saBody td,#saBody th{padding:10px 12px}
+#saBody select{min-height:34px;border:1px solid var(--n3);border-radius:8px;padding:0 6px;max-width:170px}
+.sa-mb{display:none}
+@media(max-width:960px){.sa{grid-template-columns:1fr}.sa-side{position:fixed;left:0;top:0;bottom:0;width:280px;z-index:95;transform:translateX(-100%);transition:transform var(--t3) var(--ease);height:100vh}.sa-side.open{transform:none}.sa-mb{display:inline-flex}}
+.sa-top form{flex:1 1 260px;min-width:0}.sa-top form input{flex:1;min-width:0}.sa-top select{max-width:100%}
