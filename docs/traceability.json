@@ -1,39 +1,421 @@
 [
- {"id":"MM-SEC-0001","src":"SEC-01 §5 / API-01 §3","req":"Only approved, signed-in accounts can use the business API","code":"middleware.js activeUser; v1.js user()","tests":["unauthenticated → 401 AUTHENTICATION_REQUIRED","pending account cannot log in"],"status":"Verified"},
- {"id":"MM-SEC-0002","src":"SEC-01 §7 / ERD-01 §7.2","req":"Tenant isolation: customers and companies never see each other's records","code":"v1.js ownProject, bookings/quotes owner filters","tests":["customer B cannot read customer A project → 404","company B cannot touch company A quote → 404","other company cannot see booking → 404","customer B cannot accept A's quote"],"status":"Verified"},
- {"id":"MM-SEC-0003","src":"SEC-01 §8","req":"No record enumeration: other people's and malformed ids answer 404","code":"v1.js isUuid + notFound","tests":["malformed id → 404 (no enumeration)"],"status":"Verified"},
- {"id":"MM-SEC-0004","src":"SEC-01 §8","req":"Cross-origin writes rejected","code":"middleware.js origin check","tests":["cross-origin write blocked → 403"],"status":"Verified"},
- {"id":"MM-SEC-0005","src":"SEC-01 §6 / API-01 §19","req":"Admin API is admin-only","code":"v1.js admin() + isAdmin","tests":["non-admin blocked from admin API → 401","registry is admin-only"],"status":"Verified"},
- {"id":"MM-SEC-0006","src":"API-01 §6.3 / SEC-01 data minimisation","req":"Providers see no customer identity until they confirm a booking","code":"v1.js opportunities + bookings CASE","tests":["opportunity hides customer identity","provider sees booking; customer contact hidden until confirmed","after confirmation provider sees customer contact"],"status":"Verified"},
- {"id":"MM-FUN-0001","src":"PRD-02 / API-01 §5.2","req":"Customer creates a moving project with a unique number","code":"v1.js POST /projects","tests":["customer creates project (draft, MP- number)","project created and opened"],"status":"Verified"},
- {"id":"MM-FUN-0002","src":"PRD-02 / API-01 §5.2","req":"Only customers create customer projects","code":"v1.js role check","tests":["company cannot create customer project → 403"],"status":"Verified"},
- {"id":"MM-BUS-0001","src":"BRS-01 / API-01 §5.3","req":"Submission requires origin, destination and date, with clear reasons","code":"v1.js submit","tests":["submit without addresses → 422 listing missing origin+destination","submit blocked with clear reasons"],"status":"Verified"},
- {"id":"MM-DAT-0001","src":"DB-01 §9.3","req":"Address validation: US state code, ZIP format, one origin and one destination","code":"v1.js addresses","tests":["bad ZIP rejected","origin address added (state upper-cased)","second origin → 409 DUPLICATE_ADDRESS"],"status":"Verified"},
- {"id":"MM-DAT-0002","src":"DB-01 §10.4","req":"Inventory quantity must be 1–999","code":"mm_inventory_items CHECK + v1.js","tests":["quantity 0 rejected","inventory item added"],"status":"Verified"},
- {"id":"MM-BUS-0002","src":"API-01 §5.4","req":"Submitted inventory is a locked snapshot every mover quotes on","code":"v1.js PROJECT_LOCKED","tests":["inventory locked after submit → 409"],"status":"Verified"},
- {"id":"MM-BUS-0003","src":"BRS-01 / DB-01 §9.4","req":"Project status changes only along allowed transitions, with full history","code":"v1.js PROJECT_FLOW, moveProject","tests":["re-submit → 409 INVALID_TRANSITION","full project status history recorded","cancelled project cannot be submitted","draft project can be cancelled"],"status":"Verified"},
- {"id":"MM-BUS-0004","src":"DB-01 §11.6 / PRD-07","req":"Only verified providers receive opportunities and can quote","code":"v1.js verification gate, refreshVerification","tests":["unverified company sees no opportunities (notice)","unverified company cannot quote → 403","all required checks approved → provider verified","verified company sees the project"],"status":"Verified"},
- {"id":"MM-BUS-0005","src":"ERD-01 provider_verifications","req":"Each verification check is reviewed separately; rejections need a reason","code":"mm_verifications, admin approve/reject","tests":["duplicate open check → 409","reject without reason → 422","admin approvals make provider verified"],"status":"Verified"},
- {"id":"MM-BUS-0006","src":"BRS-01 pricing / DEV-01 §7","req":"Quote totals are computed by the server from line items","code":"v1.js priceQuote (integer cents)","tests":["quote total computed on server (client total ignored): 361.50+400-20+10.25 = 751.75","negative price rejected","live total preview = $1,172.50"],"status":"Verified"},
- {"id":"MM-BUS-0007","src":"API-01 §6.4","req":"One quote per company per project; revisions create new versions","code":"mm_quotes UNIQUE, /quotes/:id/versions","tests":["same company cannot quote twice → 409","company B revises quote → v2"],"status":"Verified"},
- {"id":"MM-BUS-0008","src":"DB-01 §12.4","req":"Only the latest version can be accepted; accepted terms are immutable","code":"accept CTE version check, QUOTE_LOCKED","tests":["accepting superseded v1 → 409 QUOTE_NOT_ACCEPTABLE","accepted quote cannot be revised → 409 QUOTE_LOCKED"],"status":"Verified"},
- {"id":"MM-BUS-0009","src":"API-01 §9.3","req":"Customer must explicitly accept quote terms","code":"v1.js accept_terms","tests":["accept without terms → 422"],"status":"Verified"},
- {"id":"MM-API-0001","src":"API-01 §24","req":"Quote acceptance is idempotent (Idempotency-Key)","code":"v1.js idem(), mm_idempotency","tests":["retry with same Idempotency-Key returns same booking","same key + different body → 422"],"status":"Verified"},
- {"id":"MM-BUS-0010","src":"DB-01 §13.3 / BRS-01","req":"No double booking: one active booking per project, atomic accept","code":"uq_booking_active_project, single-statement CTE","tests":["accept v2 → booking pending at agreed 850.00","second quote cannot be accepted once booked (no double booking)","exactly one booking row exists","winning quote accepted, other rejected"],"status":"Verified"},
- {"id":"MM-BUS-0011","src":"DB-01 §9.3 booking states","req":"Booking lifecycle with role rules (provider confirms/starts/completes)","code":"v1.js BOOKING_FLOW","tests":["customer cannot confirm on behalf of company → 403","pending → completed skipped → 409","company confirms booking","start → in_progress; project in_progress","cannot cancel a move in progress → 409","complete → project completed"],"status":"Verified"},
- {"id":"MM-OPS-0001","src":"SEC-01 §15 / SRE-01","req":"Audit trail of business events","code":"mm_audit via audit()","tests":["audit log captured lifecycle events"],"status":"Verified"},
- {"id":"MM-OPS-0002","src":"SRE-01 §13","req":"Liveness, readiness and dependency health checks without secrets","code":"v1.js /health/*","tests":["health/live 200 + envelope","health/ready reports ready (DB reachable)","health/dependencies lists providers without secrets"],"status":"Verified"},
- {"id":"MM-OPS-0003","src":"REL-01 §8.2 / PRD-09 §85","req":"Feature flags toggled by admin without redeploy","code":"mm_feature_flags","tests":["admin can toggle a feature flag"],"status":"Verified"},
- {"id":"MM-OPS-0004","src":"PRD-01","req":"Admin can suspend a provider; suspension removes access immediately","code":"admin suspend","tests":["admin suspends provider","suspended provider gets no opportunities"],"status":"Verified"},
- {"id":"MM-INT-0001","src":"INTG-OPS-01 §5, §12, §24","req":"Integration registry with owner, fallback, health checks and event history","code":"mm_integrations, checkIntegration","tests":["integration registry lists 5 providers with owner + fallback","database health check → active","unconfigured provider reported as planned (no fake success)","admin can suspend an integration","integration events recorded (health checks + suspension)","unknown integration → 404"],"status":"Verified"},
- {"id":"MM-API-0002","src":"API-01 §21","req":"Standard response envelope and error format with request id","code":"v1.js out() / ApiError","tests":["unknown route → 404 standard error","invalid project_type → 422 with field details"],"status":"Verified"},
- {"id":"MM-UI-0001","src":"QA-01 §11 / PRD-09 §66.7","req":"Workspace usable on a 390px phone with no horizontal overflow and no JS errors","code":"workspace.js, style.css","tests":["no horizontal overflow on mobile","no JavaScript errors in any page"],"status":"Verified"},
- {"id":"MM-FUN-0003","src":"PRD-02 / PRD-03 end-to-end","req":"Full journey in the browser: request → verification → quote → accept → confirm","code":"workspace.js + live.js","tests":["customer accepted → booking pending","company confirmed → customer contact revealed","customer sees confirmed booking"],"status":"Verified"},
- {"id":"MM-DR-0001","src":"DR-01 §7, §22","req":"Backup can be restored and verified table by table","code":"scripts/backup_and_verify.sh","tests":[],"evidence":"docs/RUNBOOK.md §6 restore log (local drill 2026-11-27)","status":"Verified (local); production drill pending owner"},
- {"id":"MM-FIN-0001","src":"DB-01 §20 / INT-01 payments","req":"Payments, ledger, refunds, payouts","code":"—","tests":[],"status":"Not started — needs Stripe account"},
- {"id":"MM-FUN-0004","src":"PRD-05","req":"Crew and fleet assignment to confirmed bookings","code":"—","tests":[],"status":"Not started"},
- {"id":"MM-FUN-0005","src":"PRD-06","req":"Enterprise accounts, policies and approvals","code":"—","tests":[],"status":"Not started"},
- {"id":"MM-FUN-0006","src":"PRD-08 / API-01 §20","req":"Developer apps, API keys, scopes and webhooks","code":"—","tests":[],"status":"Not started"},
- {"id":"MM-SEC-0007","src":"SEC-01 §5.3","req":"MFA for admin","code":"—","tests":[],"status":"Not started"},
- {"id":"MM-AI-0001","src":"MM-AI-OS-01","req":"Central AI orchestration, agents, approvals","code":"—","tests":[],"status":"Not started — needs AI provider key and approval"}
+ {
+  "id": "MM-SEC-0001",
+  "src": "SEC-01 §5 / API-01 §3",
+  "req": "Only approved, signed-in accounts can use the business API",
+  "code": "middleware.js activeUser; v1.js user()",
+  "tests": [
+   "unauthenticated → 401 AUTHENTICATION_REQUIRED",
+   "pending account cannot log in"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-SEC-0002",
+  "src": "SEC-01 §7 / ERD-01 §7.2",
+  "req": "Tenant isolation: customers and companies never see each other's records",
+  "code": "v1.js ownProject, bookings/quotes owner filters",
+  "tests": [
+   "customer B cannot read customer A project → 404",
+   "company B cannot touch company A quote → 404",
+   "other company cannot see booking → 404",
+   "customer B cannot accept A's quote"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-SEC-0003",
+  "src": "SEC-01 §8",
+  "req": "No record enumeration: other people's and malformed ids answer 404",
+  "code": "v1.js isUuid + notFound",
+  "tests": [
+   "malformed id → 404 (no enumeration)"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-SEC-0004",
+  "src": "SEC-01 §8",
+  "req": "Cross-origin writes rejected",
+  "code": "middleware.js origin check",
+  "tests": [
+   "cross-origin write blocked → 403"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-SEC-0005",
+  "src": "SEC-01 §6 / API-01 §19",
+  "req": "Admin API is admin-only",
+  "code": "v1.js admin() + isAdmin",
+  "tests": [
+   "non-admin blocked from admin API → 401",
+   "registry is admin-only"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-SEC-0006",
+  "src": "API-01 §6.3 / SEC-01 data minimisation",
+  "req": "Providers see no customer identity until they confirm a booking",
+  "code": "v1.js opportunities + bookings CASE",
+  "tests": [
+   "opportunity hides customer identity",
+   "provider sees booking; customer contact hidden until confirmed",
+   "after confirmation provider sees customer contact"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-FUN-0001",
+  "src": "PRD-02 / API-01 §5.2",
+  "req": "Customer creates a moving project with a unique number",
+  "code": "v1.js POST /projects",
+  "tests": [
+   "customer creates project (draft, MP- number)",
+   "project created and opened"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-FUN-0002",
+  "src": "PRD-02 / API-01 §5.2",
+  "req": "Only customers create customer projects",
+  "code": "v1.js role check",
+  "tests": [
+   "company cannot create customer project → 403"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-BUS-0001",
+  "src": "BRS-01 / API-01 §5.3",
+  "req": "Submission requires origin, destination and date, with clear reasons",
+  "code": "v1.js submit",
+  "tests": [
+   "submit without addresses → 422 listing missing origin+destination",
+   "submit blocked with clear reasons"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-DAT-0001",
+  "src": "DB-01 §9.3",
+  "req": "Address validation: US state code, ZIP format, one origin and one destination",
+  "code": "v1.js addresses",
+  "tests": [
+   "bad ZIP rejected",
+   "origin address added (state upper-cased)",
+   "second origin → 409 DUPLICATE_ADDRESS"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-DAT-0002",
+  "src": "DB-01 §10.4",
+  "req": "Inventory quantity must be 1–999",
+  "code": "mm_inventory_items CHECK + v1.js",
+  "tests": [
+   "quantity 0 rejected",
+   "inventory item added"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-BUS-0002",
+  "src": "API-01 §5.4",
+  "req": "Submitted inventory is a locked snapshot every mover quotes on",
+  "code": "v1.js PROJECT_LOCKED",
+  "tests": [
+   "inventory locked after submit → 409"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-BUS-0003",
+  "src": "BRS-01 / DB-01 §9.4",
+  "req": "Project status changes only along allowed transitions, with full history",
+  "code": "v1.js PROJECT_FLOW, moveProject",
+  "tests": [
+   "re-submit → 409 INVALID_TRANSITION",
+   "full project status history recorded",
+   "cancelled project cannot be submitted",
+   "draft project can be cancelled"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-BUS-0004",
+  "src": "DB-01 §11.6 / PRD-07",
+  "req": "Only verified providers receive opportunities and can quote",
+  "code": "v1.js verification gate, refreshVerification",
+  "tests": [
+   "unverified company sees no opportunities (notice)",
+   "unverified company cannot quote → 403",
+   "all required checks approved → provider verified",
+   "verified company sees the project"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-BUS-0005",
+  "src": "ERD-01 provider_verifications",
+  "req": "Each verification check is reviewed separately; rejections need a reason",
+  "code": "mm_verifications, admin approve/reject",
+  "tests": [
+   "duplicate open check → 409",
+   "reject without reason → 422",
+   "admin approvals make provider verified"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-BUS-0006",
+  "src": "BRS-01 pricing / DEV-01 §7",
+  "req": "Quote totals are computed by the server from line items",
+  "code": "v1.js priceQuote (integer cents)",
+  "tests": [
+   "quote total computed on server (client total ignored): 361.50+400-20+10.25 = 751.75",
+   "negative price rejected",
+   "live total preview = $1,172.50"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-BUS-0007",
+  "src": "API-01 §6.4",
+  "req": "One quote per company per project; revisions create new versions",
+  "code": "mm_quotes UNIQUE, /quotes/:id/versions",
+  "tests": [
+   "same company cannot quote twice → 409",
+   "company B revises quote → v2"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-BUS-0008",
+  "src": "DB-01 §12.4",
+  "req": "Only the latest version can be accepted; accepted terms are immutable",
+  "code": "accept CTE version check, QUOTE_LOCKED",
+  "tests": [
+   "accepting superseded v1 → 409 QUOTE_NOT_ACCEPTABLE",
+   "accepted quote cannot be revised → 409 QUOTE_LOCKED"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-BUS-0009",
+  "src": "API-01 §9.3",
+  "req": "Customer must explicitly accept quote terms",
+  "code": "v1.js accept_terms",
+  "tests": [
+   "accept without terms → 422"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-API-0001",
+  "src": "API-01 §24",
+  "req": "Quote acceptance is idempotent (Idempotency-Key)",
+  "code": "v1.js idem(), mm_idempotency",
+  "tests": [
+   "retry with same Idempotency-Key returns same booking",
+   "same key + different body → 422"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-BUS-0010",
+  "src": "DB-01 §13.3 / BRS-01",
+  "req": "No double booking: one active booking per project, atomic accept",
+  "code": "uq_booking_active_project, single-statement CTE",
+  "tests": [
+   "accept v2 → booking pending at agreed 850.00",
+   "second quote cannot be accepted once booked (no double booking)",
+   "exactly one booking row exists",
+   "winning quote accepted, other rejected"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-BUS-0011",
+  "src": "DB-01 §9.3 booking states",
+  "req": "Booking lifecycle with role rules (provider confirms/starts/completes)",
+  "code": "v1.js BOOKING_FLOW",
+  "tests": [
+   "customer cannot confirm on behalf of company → 403",
+   "pending → completed skipped → 409",
+   "company confirms booking",
+   "start → in_progress; project in_progress",
+   "cannot cancel a move in progress → 409",
+   "complete → project completed"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-OPS-0001",
+  "src": "SEC-01 §15 / SRE-01",
+  "req": "Audit trail of business events",
+  "code": "mm_audit via audit()",
+  "tests": [
+   "audit log captured lifecycle events"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-OPS-0002",
+  "src": "SRE-01 §13",
+  "req": "Liveness, readiness and dependency health checks without secrets",
+  "code": "v1.js /health/*",
+  "tests": [
+   "health/live 200 + envelope",
+   "health/ready reports ready (DB reachable)",
+   "health/dependencies lists providers without secrets"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-OPS-0003",
+  "src": "REL-01 §8.2 / PRD-09 §85",
+  "req": "Feature flags toggled by admin without redeploy",
+  "code": "mm_feature_flags",
+  "tests": [
+   "admin can toggle a feature flag"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-OPS-0004",
+  "src": "PRD-01",
+  "req": "Admin can suspend a provider; suspension removes access immediately",
+  "code": "admin suspend",
+  "tests": [
+   "admin suspends provider",
+   "suspended provider gets no opportunities"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-INT-0001",
+  "src": "INTG-OPS-01 §5, §12, §24",
+  "req": "Integration registry with owner, fallback, health checks and event history",
+  "code": "mm_integrations, checkIntegration",
+  "tests": [
+   "integration registry lists 5 providers with owner + fallback",
+   "database health check → active",
+   "unconfigured provider reported as planned (no fake success)",
+   "admin can suspend an integration",
+   "integration events recorded (health checks + suspension)",
+   "unknown integration → 404"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-API-0002",
+  "src": "API-01 §21",
+  "req": "Standard response envelope and error format with request id",
+  "code": "v1.js out() / ApiError",
+  "tests": [
+   "unknown route → 404 standard error",
+   "invalid project_type → 422 with field details"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-UI-0001",
+  "src": "QA-01 §11 / PRD-09 §66.7",
+  "req": "Workspace usable on a 390px phone with no horizontal overflow and no JS errors",
+  "code": "workspace.js, style.css",
+  "tests": [
+   "no horizontal overflow on mobile",
+   "no JavaScript errors in any page"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-FUN-0003",
+  "src": "PRD-02 / PRD-03 end-to-end",
+  "req": "Full journey in the browser: request → verification → quote → accept → confirm",
+  "code": "workspace.js + live.js",
+  "tests": [
+   "customer accepted → booking pending",
+   "company confirmed → customer contact revealed",
+   "customer sees confirmed booking"
+  ],
+  "status": "Verified"
+ },
+ {
+  "id": "MM-DR-0001",
+  "src": "DR-01 §7, §22",
+  "req": "Backup can be restored and verified table by table",
+  "code": "scripts/backup_and_verify.sh",
+  "tests": [],
+  "evidence": "docs/RUNBOOK.md §6 restore log (local drill 2026-11-27)",
+  "status": "Verified (local); production drill pending owner"
+ },
+ {
+  "id": "MM-FIN-0001",
+  "src": "DB-01 §20 / INT-01 payments",
+  "req": "Payments, ledger, refunds, payouts",
+  "code": "—",
+  "tests": [],
+  "status": "Not started — needs Stripe account"
+ },
+ {
+  "id": "MM-FUN-0004",
+  "src": "PRD-05",
+  "req": "Crew and vehicles managed per company and assigned to confirmed bookings without double-booking",
+  "code": "v1.js /crew, /vehicles, /bookings/:id/assignments, /schedule; mm_crew, mm_vehicles, mm_assignments (unique per person/truck per day); workspace.js Crew & fleet + Schedule tabs",
+  "tests": [
+   "company adds crew member",
+   "company adds vehicle (plate normalised)",
+   "duplicate plate rejected → 409",
+   "company A cannot see company B's crew",
+   "cannot assign another company's crew → 422",
+   "assign 2 crew + 1 truck to confirmed booking",
+   "re-assigning same resources is a no-op (no duplicates)",
+   "customer sees first names + truck type only (no phone/plate)",
+   "customer cannot assign crew → 403",
+   "company schedule lists the 3 assignments on the move date",
+   "cannot assign before booking is confirmed → 409",
+   "same crew member same day on another job → 409 RESOURCE_CONFLICT naming the clash",
+   "truck in maintenance cannot be assigned → 422",
+   "crew and truck assigned to booking",
+   "schedule shows the move day",
+   "customer sees team first names, not phone/plate"
+  ],
+  "status": "Verified (core). GPS tracking, routes, offline crew app not built"
+ },
+ {
+  "id": "MM-FUN-0005",
+  "src": "PRD-06",
+  "req": "Enterprise accounts, policies and approvals",
+  "code": "—",
+  "tests": [],
+  "status": "Not started"
+ },
+ {
+  "id": "MM-FUN-0006",
+  "src": "PRD-08 / API-01 §20",
+  "req": "Developer apps, API keys, scopes and webhooks",
+  "code": "—",
+  "tests": [],
+  "status": "Not started"
+ },
+ {
+  "id": "MM-SEC-0007",
+  "src": "SEC-01 §5.3",
+  "req": "MFA for admin",
+  "code": "—",
+  "tests": [],
+  "status": "Not started"
+ },
+ {
+  "id": "MM-AI-0001",
+  "src": "MM-AI-OS-01",
+  "req": "Central AI orchestration, agents, approvals",
+  "code": "—",
+  "tests": [],
+  "status": "Not started — needs AI provider key and approval"
+ }
 ]
