@@ -1,7 +1,8 @@
 // Vercel Routing Middleware — protects the Super Admin panel on the server.
 // The password is NEVER stored in code. Set it in Vercel:
 // Project → Settings → Environment Variables → ADMIN_PASSWORD (then redeploy).
-export const config = { matcher: ['/super-admin', '/super-admin/:path*', '/sa.js', '/admin-login', '/admin-login/', '/admin-logout', '/admin-logout/'] };
+const PROTECTED = ['/super-admin', '/dashboard', '/company-os', '/partner-os', '/operations-os', '/enterprise/portal', '/developer/portal'];
+export const config = { matcher: ['/super-admin', '/super-admin/:path*', '/dashboard', '/dashboard/:path*', '/company-os', '/company-os/:path*', '/partner-os', '/partner-os/:path*', '/operations-os', '/operations-os/:path*', '/enterprise/portal', '/enterprise/portal/:path*', '/developer/portal', '/developer/portal/:path*', '/sa.js', '/os.js', '/os-config.js', '/admin-login', '/admin-login/', '/admin-logout', '/admin-logout/'] };
 
 const COOKIE = 'mm_admin';
 const MAX_AGE = 60 * 60 * 8; // 8 hours
@@ -23,7 +24,7 @@ function page(msg, next, configured) {
 label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#334E68}input{width:100%;min-height:50px;border:1.5px solid #D9E2EC;border-radius:10px;padding:0 14px;font-size:16px}input:focus{outline:0;border-color:#14B8A6;box-shadow:0 0 0 4px rgba(20,184,166,.2)}
 button{width:100%;min-height:50px;margin-top:16px;border:0;border-radius:10px;background:#14B8A6;color:#102A43;font-weight:700;font-size:16px;cursor:pointer}button:disabled{opacity:.5}
 .m{background:#FDECEA;color:#B42318;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:14px}.w{background:#FEF6E4;color:#7a4a08}.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;color:#102A43}.logo span{width:36px;height:36px;border-radius:9px;background:#102A43;display:inline-block}
-a{color:#0F8F81}</style></head><body><main class="c"><div class="logo"><span></span>MoveMatch</div><h1>Super Admin sign-in</h1><p>Restricted area. Access attempts are recorded by the hosting provider.</p>
+a{color:#0F8F81}</style></head><body><main class="c"><div class="logo"><span></span>MoveMatch</div><h1>MoveMatch admin sign-in</h1><p>Restricted area. Access attempts are recorded by the hosting provider.</p>
 ${configured ? '' : '<div class="m w"><b>Not set up yet.</b> Add an environment variable named <code>ADMIN_USERNAME</code> and <code>ADMIN_PASSWORD</code> in your Vercel project settings, then redeploy.</div>'}
 ${msg ? `<div class="m" role="alert">${msg}</div>` : ''}
 <form method="POST" action="/admin-login/"><input type="hidden" name="next" value="${(next || '/super-admin/').replace(/[^\w\/\-#:.]/g, '')}"><label for="un">Username</label><input id="un" name="username" autocomplete="username" required ${configured ? '' : 'disabled'} style="margin-bottom:14px"><label for="pw">Password</label><input id="pw" name="password" type="password" autocomplete="current-password" required ${configured ? '' : 'disabled'}><button ${configured ? '' : 'disabled'}>Sign in</button></form>
@@ -47,7 +48,7 @@ export default async function middleware(req) {
       const pw = String(form.get('password') || '');
       const un = String(form.get('username') || '').trim();
       const next = String(form.get('next') || '/super-admin/');
-      const dest = next.startsWith('/super-admin') ? next : '/super-admin/';
+      const dest = PROTECTED.some(p => next.startsWith(p)) ? next : '/super-admin/';
       if (!PW) return new Response(page('', dest, false), { status: 503, headers: noStore });
       await new Promise(r => setTimeout(r, 400)); // slow down guessing
       if (!safeEqual(pw, PW) || (USER && !safeEqual(un.toLowerCase(), USER.toLowerCase()))) return new Response(page('Incorrect username or password.', dest, true), { status: 401, headers: noStore });
@@ -63,6 +64,6 @@ export default async function middleware(req) {
     const [t0, t1] = await Promise.all([token(PW, day), token(PW, day - 1)]);
     if (safeEqual(c, t0) || safeEqual(c, t1)) return pass();
   }
-  if (url.pathname === '/sa.js') return new Response('Unauthorized', { status: 401, headers: { 'cache-control': 'no-store' } });
+  if (/\.js$/.test(url.pathname)) return new Response('Unauthorized', { status: 401, headers: { 'cache-control': 'no-store' } });
   return new Response(null, { status: 302, headers: { location: '/admin-login/?next=' + encodeURIComponent(url.pathname + url.search), 'cache-control': 'no-store' } });
 }
