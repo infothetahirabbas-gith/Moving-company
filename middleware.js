@@ -46,11 +46,23 @@ async function ensureSchema() {
     `ALTER TABLE mm_users ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending'`,
     `ALTER TABLE mm_users ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ`,
     `ALTER TABLE mm_users ADD COLUMN IF NOT EXISTS review_note TEXT`,
-    `CREATE TABLE IF NOT EXISTS mm_audit (id SERIAL PRIMARY KEY, user_id INT, actor TEXT, action TEXT NOT NULL, ref TEXT, at TIMESTAMPTZ DEFAULT now())`
+    `CREATE TABLE IF NOT EXISTS mm_audit (id SERIAL PRIMARY KEY, user_id INT, actor TEXT, action TEXT NOT NULL, ref TEXT, at TIMESTAMPTZ DEFAULT now())`,
+    `CREATE TABLE IF NOT EXISTS mm_resets (token_hash TEXT PRIMARY KEY, user_id INT NOT NULL REFERENCES mm_users(id) ON DELETE CASCADE, expires_at TIMESTAMPTZ NOT NULL, used_at TIMESTAMPTZ)`
   ]) await sql(q);
   schemaReady = true;
 }
 const audit = (uid, actor, action, ref = '') => sql('INSERT INTO mm_audit (user_id, actor, action, ref) VALUES ($1,$2,$3,$4)', [uid, actor, action, ref]).catch(() => {});
+
+/* ---------------- email (Resend) ---------------- */
+const mailKey = () => (typeof process !== 'undefined' && process.env && process.env.RESEND_API_KEY) || '';
+const mailFrom = () => (typeof process !== 'undefined' && process.env && process.env.MAIL_FROM) || 'MoveMatch <onboarding@resend.dev>';
+const escH = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const mailWrap = (title, inner) => `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#102A43"><div style="background:#102A43;color:#fff;padding:16px 20px;font-weight:bold;font-size:18px">MoveMatch</div><div style="padding:20px;border:1px solid #e2e8f0"><h2 style="margin-top:0">${escH(title)}</h2>${inner}<p style="color:#64748b;font-size:12px;margin-top:24px">You received this because of activity on your MoveMatch account or request. If this wasn't you, ignore this email.</p></div></div>`;
+async function sendMail(to, subject, html) {
+  const key = mailKey(); if (!key || !to) return { sent: false, reason: 'not configured' };
+  try { const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { authorization: 'Bearer ' + key, 'content-type': 'application/json' }, body: JSON.stringify({ from: mailFrom(), to: [to], subject, html }) }); const ok = r.ok; await audit(null, 'system', ok ? 'email_sent' : 'email_failed:' + r.status, subject.slice(0, 60)); return { sent: ok }; } catch (e) { await audit(null, 'system', 'email_error', String(e.message).slice(0, 60)); return { sent: false }; }
+}
+const sha256 = async s => hex(await crypto.subtle.digest('SHA-256', enc.encode(s)));
 
 /* ---------------- passwords & sessions ---------------- */
 async function hashPw(pw, salt) { const k = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']); return hex(await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' }, k, 256)); }
@@ -74,12 +86,29 @@ async function activeUser(s) { if (!s) return null; try { await ensureSchema(); 
 /* ---------------- API ---------------- */
 async function api(req, url) {
   const p = url.pathname.replace(/\/$/, ''), m = req.method;
-  if (p === '/api/health') { try { await ensureSchema(); const [u] = await sql('SELECT count(*)::int AS n FROM mm_users'); return json({ ok: true, database: 'connected', users: u.n }); } catch (e) { return json({ ok: false, database: dbUrl() ? 'error' : 'not configured', error: String(e.message) }, 503); } }
+  if (p === '/api/health') { try { await ensureSchema(); const [u] = await sql('SELECT count(*)::int AS n FROM mm_users'); return json({ ok: true, database: 'connected', users: u.n, email: mailKey() ? 'configured' : 'not configured' }); } catch (e) { return json({ ok: false, database: dbUrl() ? 'error' : 'not configured', error: String(e.message) }, 503); } }
   if (!dbUrl()) return json({ error: 'Database not configured' }, 503);
   if (m !== 'GET' && m !== 'HEAD') { const o = req.headers.get('origin'); if (o && new URL(o).host !== url.host) return json({ error: 'Bad origin' }, 403); }
   await ensureSchema();
   const body = m === 'POST' || m === 'PUT' ? await req.json().catch(() => ({})) : {};
 
+  if (p === '/api/forgot' && m === 'POST') {
+    if (limited(req, 'fp', 5)) return json({ error: 'Too many attempts. Try again later.' }, 429);
+    const email = String(body.email || '').trim().toLowerCase(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return json({ error: 'Enter a valid email.' }, 400);
+    if (!mailKey()) return json({ error: 'Email reset is not switched on yet. Please contact support.' }, 503);
+    const [u] = await sql("SELECT id,name FROM mm_users WHERE email=$1 AND status IN ('approved','pending')", [email]);
+    if (u) { const t = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, ''); await sql("INSERT INTO mm_resets (token_hash,user_id,expires_at) VALUES ($1,$2,now()+interval '1 hour')", [await sha256(t), u.id]); const link = new URL(req.url).origin + '/reset-password/?t=' + t; await sendMail(email, 'Reset your MoveMatch password', mailWrap('Reset your password', `<p>Hi ${escH(u.name)},</p><p>Use the button below within 1 hour to choose a new password.</p><p><a href="${link}" style="background:#0F8F81;color:#fff;padding:10px 18px;text-decoration:none;border-radius:6px">Choose a new password</a></p>`)); await audit(u.id, email, 'password_reset_requested'); }
+    return json({ ok: true, done: true, message: 'If an account exists for that email, a reset link is on its way. It expires in 1 hour.' });
+  }
+  if (p === '/api/reset' && m === 'POST') {
+    if (limited(req, 'rp', 10)) return json({ error: 'Too many attempts. Try again later.' }, 429);
+    const t = String(body.t || ''), pw = String(body.password || ''); if (!/^[a-f0-9]{64}$/.test(t)) return json({ error: 'This reset link is invalid.' }, 400);
+    if (pw.length < 8) return json({ error: 'Password must be at least 8 characters.' }, 400);
+    const th = await sha256(t); const [r] = await sql('SELECT user_id FROM mm_resets WHERE token_hash=$1 AND used_at IS NULL AND expires_at > now()', [th]);
+    if (!r) return json({ error: 'This reset link has expired or was already used. Request a new one.' }, 400);
+    const salt = crypto.randomUUID(); await sql('UPDATE mm_users SET pass_hash=$1, salt=$2 WHERE id=$3', [await hashPw(pw, salt), salt, r.user_id]); await sql('UPDATE mm_resets SET used_at=now() WHERE user_id=$1 AND used_at IS NULL', [r.user_id]); await audit(r.user_id, 'user', 'password_reset_done');
+    return json({ ok: true, done: true, message: 'Your password has been changed. You can now log in.' });
+  }
   if (p === '/api/signup' && m === 'POST') {
     if (limited(req, 'su', 10)) return json({ error: 'Too many attempts. Try again later.' }, 429);
     const email = String(body.email || '').trim().toLowerCase(), name = String(body.name || '').trim().slice(0, 120), pw = String(body.password || ''), role = ROLES.includes(body.role) ? body.role : 'customer', company = String(body.company || '').trim().slice(0, 160);
@@ -91,6 +120,7 @@ async function api(req, url) {
     const salt = crypto.randomUUID(); const h = await hashPw(pw, salt);
     const [u] = await sql("INSERT INTO mm_users (email,name,role,company,pass_hash,salt,status) VALUES ($1,$2,$3,$4,$5,$6,'pending') RETURNING id,email,name,role,company,status", [email, name, role, company || null, h, salt]);
     await audit(u.id, email, 'signup', role);
+    await sendMail(email, 'We received your MoveMatch application', mailWrap('Application received', `<p>Hi ${escH(name)},</p><p>Thanks for signing up as a <b>${escH(role)}</b>. Your account is pending review by the MoveMatch team. We will email you as soon as it is approved.</p>`));
     return json({ ok: true, pending: true, message: 'Thanks! Your account is pending approval by the MoveMatch team. You can log in once it is approved.' }, 201);
   }
   if (p === '/api/login' && m === 'POST') {
@@ -123,6 +153,7 @@ async function api(req, url) {
     if (email) { const [dup] = await sql("SELECT ref FROM mm_quote_requests WHERE lower(email)=lower($1) AND data->'f'->>'from'=$2 AND data->'f'->>'to'=$3 AND coalesce(data->'f'->>'date','')=$4 AND created_at > now() - interval '24 hours' LIMIT 1", [email, String(f.from), String(f.to), String(f.date || '')]); if (dup) return json({ ok: true, ref: dup.ref, duplicate: true }, 200); }
     await sql('INSERT INTO mm_quote_requests (ref,user_id,email,data) VALUES ($1,$2,$3,$4::jsonb)', [ref, s?.uid || null, email, raw]);
     await audit(s?.uid || null, email || 'guest', 'quote_request', ref);
+    if (email) await sendMail(email, 'Your moving request ' + ref, mailWrap('Request received — ' + ref, `<p>We received your moving request from <b>${escH(f.from)}</b> to <b>${escH(f.to)}</b>${f.date ? ' on <b>' + escH(f.date) + '</b>' : ''}.</p><p>Keep your reference <b>${ref}</b>. You can check its status at ${new URL(req.url).origin}/track-my-move/.</p>`));
     return json({ ok: true, ref }, 201);
   }
   if (p === '/api/quotes/mine') { const s = await readSession(req); if (!s) return json({ error: 'Sign in required' }, 401); return json({ requests: await sql('SELECT ref,status,data,created_at FROM mm_quote_requests WHERE user_id=$1 OR email=$2 ORDER BY id DESC LIMIT 50', [s.uid, s.email]) }); }
@@ -138,7 +169,7 @@ async function api(req, url) {
       const log = await sql('SELECT actor,action,ref,at FROM mm_audit ORDER BY id DESC LIMIT 50');
       return json({ counts: c, roles, users, quotes, audit: log });
     }
-    if (p === '/api/admin/user-status' && m === 'POST') { const st = ['approved', 'rejected', 'suspended', 'pending'].includes(body.status) ? body.status : null; const id = parseInt(body.id, 10); if (!st || !id) return json({ error: 'Bad request' }, 400); const [u] = await sql('UPDATE mm_users SET status=$1, reviewed_at=now(), review_note=$2 WHERE id=$3 RETURNING id,email,status', [st, String(body.note || '').slice(0, 300) || null, id]); if (!u) return json({ error: 'User not found' }, 404); await audit(id, 'admin', 'account_' + st, u.email); return json({ ok: true, user: u }); }
+    if (p === '/api/admin/user-status' && m === 'POST') { const st = ['approved', 'rejected', 'suspended', 'pending'].includes(body.status) ? body.status : null; const id = parseInt(body.id, 10); if (!st || !id) return json({ error: 'Bad request' }, 400); const [u] = await sql('UPDATE mm_users SET status=$1, reviewed_at=now(), review_note=$2 WHERE id=$3 RETURNING id,email,status', [st, String(body.note || '').slice(0, 300) || null, id]); if (!u) return json({ error: 'User not found' }, 404); await audit(id, 'admin', 'account_' + st, u.email); const site = new URL(req.url).origin; const note = String(body.note || '').slice(0, 300); const msgs = { approved: ['Your MoveMatch account is approved', 'Account approved', `<p>Good news — your account is now active.</p><p><a href="${site}/login/" style="background:#0F8F81;color:#fff;padding:10px 18px;text-decoration:none;border-radius:6px">Log in to MoveMatch</a></p>`], rejected: ['Update on your MoveMatch application', 'Application not approved', `<p>We could not approve your account at this time.</p>${note ? `<p>Reason: ${escH(note)}</p>` : ''}<p>Reply to support via ${site}/contact/ if you have questions.</p>`], suspended: ['Your MoveMatch account is suspended', 'Account suspended', `<p>Your account has been suspended.</p>${note ? `<p>Reason: ${escH(note)}</p>` : ''}<p>Contact support via ${site}/contact/.</p>`] }; const mm = msgs[st]; const mr = mm ? await sendMail(u.email, mm[0], mailWrap(mm[1], mm[2])) : { sent: false }; return json({ ok: true, user: u, emailed: !!mr.sent }); }
     if (p === '/api/admin/quote-status' && m === 'POST') { const st = ['New', 'Contacted', 'Quoted', 'Booked', 'Closed', 'Spam'].includes(body.status) ? body.status : null; if (!st) return json({ error: 'Bad status' }, 400); await sql('UPDATE mm_quote_requests SET status=$1 WHERE ref=$2', [st, String(body.ref)]); await audit(null, 'admin', 'quote_status:' + st, body.ref); return json({ ok: true }); }
   }
   return json({ error: 'Not found' }, 404);

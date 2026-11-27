@@ -428,9 +428,10 @@ const post=(u,d)=>fetch(u,{method:'POST',headers:{'content-type':'application/js
 const sr=$('#sr');if(sr&&$('#sCo')){const qr=new URLSearchParams(location.search).get('role');if(qr&&[...sr.options].some(o=>o.value===qr))sr.value=qr;const f=()=>{$('#sCo').hidden=sr.value==='customer';$('#sc').required=sr.value!=='customer'};sr.onchange=f;f()}
 $$('form[data-api]').forEach(f=>f.addEventListener('submit',async e=>{e.preventDefault();const err=$('.api-err',f);err.hidden=true;let ok=true;
  $$('[required]',f).forEach(x=>{const g=x.type==='email'?/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x.value):x.type==='checkbox'?x.checked:x.minLength>0?x.value.length>=x.minLength:x.value.trim().length>0;x.closest('.fld')&&x.closest('.fld').classList.toggle('bad',!g);if(!g&&ok){ok=false;x.focus()}});if(!ok)return;
- const b=$('button[type=submit]',f);b.classList.add('loading');b.disabled=true;const d={};$$('[name]',f).forEach(x=>d[x.name]=x.value);
+ const b=$('button[type=submit]',f);b.classList.add('loading');b.disabled=true;const d={};$$('[name]',f).forEach(x=>d[x.name]=x.value);if(f.dataset.api==='reset'){d.t=new URLSearchParams(location.search).get('t')||'';if(d.password!==d.password2){err.textContent='Passwords do not match.';err.hidden=false;b.classList.remove('loading');b.disabled=false;return}}
  const r=await post('/api/'+f.dataset.api,d).catch(()=>({ok:false,j:{error:'Network error — try again.'}}));b.classList.remove('loading');b.disabled=false;
  if(!r.ok){err.textContent=r.j.error||'Something went wrong.';err.hidden=false;err.classList.toggle('pend',r.j.status==='pending');return}
+ if(r.j.done){f.innerHTML=`<div class="notice info" role="status"><div>${r.j.message}</div></div><a class="btn btn-p" href="/login/">Go to log in</a>`;return}
  if(r.j.pending){f.innerHTML=`<div class="notice info" role="status"><div><b>Application received — pending approval.</b><br>${r.j.message}</div></div><a class="btn btn-o" href="/">Back to homepage</a>`;return}
  const next=new URLSearchParams(location.search).get('next');location.href=next&&next.startsWith('/')&&!next.startsWith('//')?next:r.j.home||'/'}));
 /* header: show account state */
