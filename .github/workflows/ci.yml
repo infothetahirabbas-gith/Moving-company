@@ -1,0 +1,28 @@
+# QA-01 / OPS-01: every push and pull request runs the full test suite against a real PostgreSQL.
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Start PostgreSQL 16 on a local socket
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-16 >/dev/null
+          mkdir -p /tmp/pg && sudo chown postgres /tmp/pg
+          sudo -u postgres /usr/lib/postgresql/16/bin/initdb -D /tmp/pg/data -A trust >/dev/null
+          sudo -u postgres /usr/lib/postgresql/16/bin/pg_ctl -D /tmp/pg/data -o "-p 5433 -k /tmp/pg" -l /tmp/pg/log start
+      - name: Install Playwright
+        run: pip install playwright==1.* && python -m playwright install --with-deps chromium
+      - name: Syntax check
+        run: for f in app.js os.js os-config.js sa.js live.js workspace.js; do node --check "$f"; done
+      - name: Build site
+        run: node build.js
+      - name: API + browser tests
+        run: sh tests/run_all.sh
