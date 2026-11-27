@@ -119,7 +119,9 @@ async function api(req, url) {
     const d = body.data || {}; const f = d.f || {}; if (!f.from || !f.to) return json({ error: 'Missing move details' }, 400);
     const s = await readSession(req); const ref = 'MM-' + crypto.randomUUID().replace(/-/g, '').slice(0, 6).toUpperCase();
     const email = String(f.email || s?.email || '').slice(0, 200);
-    await sql('INSERT INTO mm_quote_requests (ref,user_id,email,data) VALUES ($1,$2,$3,$4::jsonb)', [ref, s?.uid || null, email, JSON.stringify(d).slice(0, 200000)]);
+    const raw = JSON.stringify(d); if (raw.length > 600000) return json({ error: 'Request too large — remove some photos.' }, 413);
+    if (email) { const [dup] = await sql("SELECT ref FROM mm_quote_requests WHERE lower(email)=lower($1) AND data->'f'->>'from'=$2 AND data->'f'->>'to'=$3 AND coalesce(data->'f'->>'date','')=$4 AND created_at > now() - interval '24 hours' LIMIT 1", [email, String(f.from), String(f.to), String(f.date || '')]); if (dup) return json({ ok: true, ref: dup.ref, duplicate: true }, 200); }
+    await sql('INSERT INTO mm_quote_requests (ref,user_id,email,data) VALUES ($1,$2,$3,$4::jsonb)', [ref, s?.uid || null, email, raw]);
     await audit(s?.uid || null, email || 'guest', 'quote_request', ref);
     return json({ ok: true, ref }, 201);
   }
