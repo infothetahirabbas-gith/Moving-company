@@ -24,9 +24,9 @@ label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#334E
 button{width:100%;min-height:50px;margin-top:16px;border:0;border-radius:10px;background:#14B8A6;color:#102A43;font-weight:700;font-size:16px;cursor:pointer}button:disabled{opacity:.5}
 .m{background:#FDECEA;color:#B42318;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:14px}.w{background:#FEF6E4;color:#7a4a08}.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;color:#102A43}.logo span{width:36px;height:36px;border-radius:9px;background:#102A43;display:inline-block}
 a{color:#0F8F81}</style></head><body><main class="c"><div class="logo"><span></span>MoveMatch</div><h1>Super Admin sign-in</h1><p>Restricted area. Access attempts are recorded by the hosting provider.</p>
-${configured ? '' : '<div class="m w"><b>Not set up yet.</b> Add an environment variable named <code>ADMIN_PASSWORD</code> in your Vercel project settings, then redeploy.</div>'}
+${configured ? '' : '<div class="m w"><b>Not set up yet.</b> Add an environment variable named <code>ADMIN_USERNAME</code> and <code>ADMIN_PASSWORD</code> in your Vercel project settings, then redeploy.</div>'}
 ${msg ? `<div class="m" role="alert">${msg}</div>` : ''}
-<form method="POST" action="/admin-login/"><input type="hidden" name="next" value="${(next || '/super-admin/').replace(/[^\w\/\-#:.]/g, '')}"><label for="pw">Password</label><input id="pw" name="password" type="password" autocomplete="current-password" required autofocus ${configured ? '' : 'disabled'}><button ${configured ? '' : 'disabled'}>Sign in</button></form>
+<form method="POST" action="/admin-login/"><input type="hidden" name="next" value="${(next || '/super-admin/').replace(/[^\w\/\-#:.]/g, '')}"><label for="un">Username</label><input id="un" name="username" autocomplete="username" required ${configured ? '' : 'disabled'} style="margin-bottom:14px"><label for="pw">Password</label><input id="pw" name="password" type="password" autocomplete="current-password" required ${configured ? '' : 'disabled'}><button ${configured ? '' : 'disabled'}>Sign in</button></form>
 <p style="margin:16px 0 0"><a href="/">← Back to website</a></p></main></body></html>`;
 }
 
@@ -34,6 +34,7 @@ export default async function middleware(req) {
   const url = new URL(req.url);
   const P = url.pathname.length > 1 ? url.pathname.replace(/\/$/, '') : url.pathname;
   const PW = process.env.ADMIN_PASSWORD || '';
+  const USER = process.env.ADMIN_USERNAME || '';
   const day = Math.floor(Date.now() / 86400000);
 
   if (P === '/admin-logout') {
@@ -44,11 +45,12 @@ export default async function middleware(req) {
     if (req.method === 'POST') {
       const form = await req.formData();
       const pw = String(form.get('password') || '');
+      const un = String(form.get('username') || '').trim();
       const next = String(form.get('next') || '/super-admin/');
       const dest = next.startsWith('/super-admin') ? next : '/super-admin/';
       if (!PW) return new Response(page('', dest, false), { status: 503, headers: noStore });
       await new Promise(r => setTimeout(r, 400)); // slow down guessing
-      if (!safeEqual(pw, PW)) return new Response(page('Incorrect password.', dest, true), { status: 401, headers: noStore });
+      if (!safeEqual(pw, PW) || (USER && !safeEqual(un.toLowerCase(), USER.toLowerCase()))) return new Response(page('Incorrect username or password.', dest, true), { status: 401, headers: noStore });
       const t = await token(PW, day);
       return new Response(null, { status: 303, headers: { location: dest, 'set-cookie': `${COOKIE}=${t}; Path=/; Max-Age=${MAX_AGE}; HttpOnly; Secure; SameSite=Strict`, 'cache-control': 'no-store' } });
     }
