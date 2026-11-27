@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0 — 2026-11-27 (asset V15)
+### Added
+- **Crew & Fleet (PRD-05 core):** companies manage crew and vehicles (active, maintenance or inactive) and assign them to confirmed bookings.
+  - No double-booking: the database refuses the same person or truck on two jobs on the same day, and the error names who clashes and on which booking.
+  - Cancelling a booking frees its crew and trucks.
+  - Customers see their team's first names and the truck type, never phone numbers or plates.
+  - New "Crew & fleet" and "Schedule" tabs in `/app/`.
+- 17 new API checks (90 total) and 4 new browser checks (24 total).
+
 ## 1.1.0 — 2026-11-27 (asset V14)
 ### Added
 - **Integration registry** (INTG-OPS-01): `/api/v1/admin/integrations` with free health checks, event history, suspend/activate. Integrations panel on `/super-admin/data/`.

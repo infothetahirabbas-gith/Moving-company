@@ -926,7 +926,7 @@
   },
   "/quote-versions/{id}/accept": {
    "post": {
-    "summary": "Accept the latest version of an issued quote → creates a pending booking atomically",
+    "summary": "Accept the latest version of an issued quote \u2192 creates a pending booking atomically",
     "security": [
      {
       "session": []
@@ -968,7 +968,7 @@
       }
      }
     ],
-    "description": "Accept the latest version of an issued quote → creates a pending booking atomically",
+    "description": "Accept the latest version of an issued quote \u2192 creates a pending booking atomically",
     "responses": {
      "200": {
       "description": "OK",
@@ -1657,7 +1657,7 @@
   },
   "/quotes/{id}/versions": {
    "post": {
-    "summary": "Revise an issued quote → new version",
+    "summary": "Revise an issued quote \u2192 new version",
     "security": [
      {
       "session": []
@@ -1684,7 +1684,7 @@
       }
      }
     ],
-    "description": "Revise an issued quote → new version",
+    "description": "Revise an issued quote \u2192 new version",
     "responses": {
      "200": {
       "description": "OK",
@@ -2258,6 +2258,307 @@
         }
        }
       }
+     }
+    }
+   }
+  },
+  "/crew": {
+   "get": {
+    "summary": "My crew (company/partner)",
+    "security": [
+     {
+      "session": []
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     },
+     "401": {
+      "description": "Not signed in"
+     },
+     "404": {
+      "description": "Not found or not yours"
+     }
+    }
+   },
+   "post": {
+    "summary": "Add crew member (name, crew_role: mover|driver|crew_lead|packer, phone)",
+    "security": [
+     {
+      "session": []
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     },
+     "401": {
+      "description": "Not signed in"
+     },
+     "404": {
+      "description": "Not found or not yours"
+     },
+     "422": {
+      "description": "Validation failed"
+     }
+    }
+   }
+  },
+  "/crew/{id}/deactivate": {
+   "post": {
+    "summary": "Deactivate crew member",
+    "security": [
+     {
+      "session": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     },
+     "401": {
+      "description": "Not signed in"
+     },
+     "404": {
+      "description": "Not found or not yours"
+     }
+    }
+   }
+  },
+  "/crew/{id}/activate": {
+   "post": {
+    "summary": "Reactivate crew member",
+    "security": [
+     {
+      "session": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     },
+     "401": {
+      "description": "Not signed in"
+     },
+     "404": {
+      "description": "Not found or not yours"
+     }
+    }
+   }
+  },
+  "/vehicles": {
+   "get": {
+    "summary": "My vehicles",
+    "security": [
+     {
+      "session": []
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     },
+     "401": {
+      "description": "Not signed in"
+     },
+     "404": {
+      "description": "Not found or not yours"
+     }
+    }
+   },
+   "post": {
+    "summary": "Add vehicle (label, registration, capacity_cuft)",
+    "security": [
+     {
+      "session": []
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     },
+     "401": {
+      "description": "Not signed in"
+     },
+     "404": {
+      "description": "Not found or not yours"
+     },
+     "409": {
+      "description": "Duplicate plate"
+     }
+    }
+   }
+  },
+  "/vehicles/{id}/status": {
+   "post": {
+    "summary": "Set vehicle status: active | maintenance | inactive",
+    "security": [
+     {
+      "session": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     },
+     "401": {
+      "description": "Not signed in"
+     },
+     "404": {
+      "description": "Not found or not yours"
+     }
+    }
+   }
+  },
+  "/bookings/{id}/assignments": {
+   "get": {
+    "summary": "Crew and vehicles on a booking (customer sees first names and truck type only)",
+    "security": [
+     {
+      "session": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     },
+     "401": {
+      "description": "Not signed in"
+     },
+     "404": {
+      "description": "Not found or not yours"
+     }
+    }
+   },
+   "post": {
+    "summary": "Assign crew_ids[] and vehicle_ids[] to a confirmed booking; same person/truck cannot work two jobs on one day",
+    "security": [
+     {
+      "session": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     },
+     "401": {
+      "description": "Not signed in"
+     },
+     "404": {
+      "description": "Not found or not yours"
+     },
+     "409": {
+      "description": "Booking not confirmed / RESOURCE_CONFLICT"
+     },
+     "422": {
+      "description": "Not your resources or not active"
+     }
+    }
+   },
+   "delete": {
+    "summary": "Remove an assignment (?id=)",
+    "security": [
+     {
+      "session": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "format": "uuid"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     },
+     "401": {
+      "description": "Not signed in"
+     },
+     "404": {
+      "description": "Not found or not yours"
+     }
+    }
+   }
+  },
+  "/schedule": {
+   "get": {
+    "summary": "Company schedule: assignments from 7 days ago onward",
+    "security": [
+     {
+      "session": []
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     },
+     "401": {
+      "description": "Not signed in"
+     },
+     "404": {
+      "description": "Not found or not yours"
      }
     }
    }
