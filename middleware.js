@@ -1,5 +1,6 @@
 // MoveMatch server layer (Vercel Routing Middleware, Edge runtime).
 // 1) Protects private dashboards.  2) Real backend API under /api/* backed by Neon Postgres.
+import { makeV1 } from './v1.js';
 // Secrets come only from environment variables: ADMIN_PASSWORD, ADMIN_USERNAME (optional), DATABASE_URL (added by the Neon integration).
 const PROTECTED = ['/super-admin', '/dashboard', '/company-os', '/partner-os', '/operations-os', '/enterprise/portal', '/developer/portal'];
 // Which signed-in account roles may open which dashboard (admin may open all)
@@ -83,6 +84,7 @@ const hits = new Map();
 function limited(req, key, max) { const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'x'; const k = key + ip, now = Date.now(); const a = (hits.get(k) || []).filter(t => now - t < 600000); a.push(now); hits.set(k, a); return a.length > max; }
 
 async function activeUser(s) { if (!s) return null; try { await ensureSchema(); const [u] = await sql('SELECT status FROM mm_users WHERE id=$1', [s.uid]); return u && u.status === 'approved' ? s : null; } catch { return null; } }
+const V1 = makeV1({ sql, readSession, activeUser, isAdmin, audit, limited });
 /* ---------------- API ---------------- */
 async function api(req, url) {
   const p = url.pathname.replace(/\/$/, ''), m = req.method;
@@ -91,6 +93,7 @@ async function api(req, url) {
   if (m !== 'GET' && m !== 'HEAD') { const o = req.headers.get('origin'); if (o && new URL(o).host !== url.host) return json({ error: 'Bad origin' }, 403); }
   await ensureSchema();
   const body = m === 'POST' || m === 'PUT' ? await req.json().catch(() => ({})) : {};
+  if (p.startsWith('/api/v1/')) return V1(req, url, body);
 
   if (p === '/api/forgot' && m === 'POST') {
     if (limited(req, 'fp', 5)) return json({ error: 'Too many attempts. Try again later.' }, 429);
