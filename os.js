@@ -14,7 +14,8 @@ const KEY='mmos_'+CFG.id+'_v'+(CFG.version||1);
 const clone=o=>JSON.parse(JSON.stringify(o));
 let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S){S={data:clone(CFG.seed),audit:[],role:CFG.roles[0].id}}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let REMOTE=false,tmr=null;const syncUp=()=>{clearTimeout(tmr);tmr=setTimeout(()=>fetch('/api/state/'+CFG.id,{method:'PUT',headers:{'content-type':'application/json'},credentials:'same-origin',body:JSON.stringify({data:S})}).then(r=>{const b=document.getElementById('osSync');if(b)b.textContent=r.ok?'✓ Saved to your account':'⚠ Not saved — check connection'}).catch(()=>{}),700)};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(REMOTE)syncUp()};
 const role=()=>CFG.roles.find(r=>r.id===S.role)||CFG.roles[0];
 const can=m=>{const r=role();return r.mods==='*'||r.mods.includes(m)};
 const log=(action,ref)=>{S.audit.unshift({t:new Date().toISOString(),role:role().name,action,ref:ref||''});S.audit=S.audit.slice(0,300);save()};
@@ -117,4 +118,6 @@ function render(){const id=(location.hash||'').slice(1);const m=CFG.modules.find
  if(v.dataset.mod!==m.id){v.dataset.mod=m.id;delete v.dataset.q;delete v.dataset.st;delete v.dataset.m}
  R[m.type](m,v);document.title=`${m.name} · ${CFG.title} | MoveMatch`}
 ctx.R=R;render();
+fetch('/api/state/'+CFG.id,{credentials:'same-origin'}).then(async r=>{if(!r.ok)return;const j=await r.json();REMOTE=true;if(j.data&&j.data.data){S=j.data;ctx.S=S;if(!CFG.roles.some(x=>x.id===S.role))S.role=CFG.roles[0].id;$('#osRole').value=S.role}else{save()}
+ const n=root.querySelector('.notice');if(n)n.innerHTML='<span>✓</span><div><b>Signed in — your dashboard is saved to your MoveMatch account</b> and syncs across devices. <span id="osSync" class="help"></span> Payments, emails and GPS are not connected yet. <a href="#" id="osOut">Log out</a></div>';const o=document.getElementById('osOut');if(o)o.onclick=e=>{e.preventDefault();fetch('/api/logout',{method:'POST',credentials:'same-origin'}).then(()=>location.href='/')};render()}).catch(()=>{});
 })();

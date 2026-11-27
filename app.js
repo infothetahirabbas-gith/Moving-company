@@ -419,3 +419,22 @@ $$('.lz').forEach(g=>{const f=()=>{$('#lzOut').textContent=LZ[g.dataset.z];$$('.
 if($('.usmap')){let F=null,T=null;const name=b=>b.getAttribute('aria-label');const up=()=>{$$('.stt').forEach(b=>{b.classList.toggle('f',b.dataset.s===F);b.classList.toggle('t',b.dataset.s===T);b.setAttribute('aria-pressed',b.dataset.s===F||b.dataset.s===T)});const fb=F&&$(`.stt[data-s="${F}"]`),tb=T&&$(`.stt[data-s="${T}"]`);$('#umF').textContent=fb?name(fb):'Select a state';$('#umT').textContent=tb?name(tb):F?'Now select destination':'—';$('#umK').textContent=F&&T?(F===T?'Within one state':'Interstate move'):'—';$('#umGo').href='/get-quotes/'+(F&&T?'?from='+F+'&to='+T:'')};
  $$('.stt').forEach(b=>b.onclick=()=>{if(!F||(F&&T)){F=b.dataset.s;T=null}else T=b.dataset.s;up()});$('#umR').onclick=()=>{F=T=null;up()};up()}
 })();
+/* ===== V10: real accounts & database ===== */
+(function(){
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const post=(u,d)=>fetch(u,{method:'POST',headers:{'content-type':'application/json'},credentials:'same-origin',body:JSON.stringify(d)}).then(async r=>({ok:r.ok,status:r.status,j:await r.json().catch(()=>({}))}));
+const sr=$('#sr');if(sr&&$('#sCo')){const f=()=>{$('#sCo').hidden=sr.value==='customer';$('#sc').required=sr.value!=='customer'};sr.onchange=f;f()}
+$$('form[data-api]').forEach(f=>f.addEventListener('submit',async e=>{e.preventDefault();const err=$('.api-err',f);err.hidden=true;let ok=true;
+ $$('[required]',f).forEach(x=>{const g=x.type==='email'?/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x.value):x.type==='checkbox'?x.checked:x.minLength>0?x.value.length>=x.minLength:x.value.trim().length>0;x.closest('.fld')&&x.closest('.fld').classList.toggle('bad',!g);if(!g&&ok){ok=false;x.focus()}});if(!ok)return;
+ const b=$('button[type=submit]',f);b.classList.add('loading');b.disabled=true;const d={};$$('[name]',f).forEach(x=>d[x.name]=x.value);
+ const r=await post('/api/'+f.dataset.api,d).catch(()=>({ok:false,j:{error:'Network error — try again.'}}));b.classList.remove('loading');b.disabled=false;
+ if(!r.ok){err.textContent=r.j.error||'Something went wrong.';err.hidden=false;return}
+ const next=new URLSearchParams(location.search).get('next');location.href=next&&next.startsWith('/')&&!next.startsWith('//')?next:r.j.home||'/'}));
+/* header: show account state */
+fetch('/api/me',{credentials:'same-origin'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.user)return;$$('a[href="/login/"]').forEach(a=>{a.textContent='My dashboard';a.href=j.home});$$('a[href="/signup/"]').forEach(a=>{a.textContent='Log out';a.href='#';a.onclick=e=>{e.preventDefault();post('/api/logout',{}).then(()=>location.href='/')}})}).catch(()=>{});
+/* quote wizard → database */
+const ref=$('#wRef');if(ref){new MutationObserver(()=>{const v=ref.textContent;if(!v||ref.dataset.sent===v)return;ref.dataset.sent=v;let d=null;try{d=JSON.parse(localStorage.getItem('mm_req_'+v))}catch(e){}if(!d)return;
+ post('/api/quotes',{data:d}).then(r=>{if(r.ok&&r.j.ref){try{localStorage.setItem('mm_req_'+r.j.ref,JSON.stringify(d))}catch(e){}ref.dataset.sent=r.j.ref;ref.textContent=r.j.ref;window.mmToast&&mmToast('Request saved — reference '+r.j.ref)}else window.mmToast&&mmToast('Saved on this device only (server unavailable).','var(--warn)')})}).observe(ref,{childList:true,characterData:true,subtree:true})}
+/* track: check server */
+const tk=$('#trackForm');if(tk)tk.addEventListener('submit',async()=>{const v=$('#tRef').value.trim().toUpperCase();if(!/^MM-[A-Z0-9]{4,8}$/.test(v))return;const r=await fetch('/api/track?ref='+encodeURIComponent(v)).catch(()=>null);if(!r||!r.ok)return;const j=await r.json();const q=j.request;$('#tOut').innerHTML=`<div class="notice info"><div><b>Request ${q.ref} found.</b><br>Route: ${String(q.frm||'').replace(/</g,'&lt;')} → ${String(q.dest||'').replace(/</g,'&lt;')}. Status: <b>${q.status}</b> · received ${new Date(q.created_at).toLocaleDateString()}.</div></div>`});
+})();
