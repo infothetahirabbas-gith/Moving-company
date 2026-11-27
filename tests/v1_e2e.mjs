@@ -113,8 +113,8 @@ r = await call(`/api/v1/quote-versions/${QBv2}/accept`, 'POST', { accept_terms: 
 r = await call(`/api/v1/quote-versions/${QBv2}/accept`, 'POST', { accept_terms: false, x: 1 }, custA, { 'idempotency-key': key }); ok('same key + different body → 422', r.s === 422);
 const qaVer = (await sqlDirect('SELECT id FROM mm_quote_versions WHERE quote_id=$1', [QA]))[0].id;
 r = await call(`/api/v1/quote-versions/${qaVer}/accept`, 'POST', { accept_terms: true }, custA); ok('second quote cannot be accepted once booked (no double booking)', r.s === 409);
-const cnt = await sqlDirect('SELECT count(*) n FROM mm_bookings'); ok('exactly one booking row exists', cnt[0].n === '1');
-const qs = await sqlDirect('SELECT status FROM mm_quotes ORDER BY status'); ok('winning quote accepted, other rejected', qs.map(x => x.status).join() === 'accepted,rejected');
+const cnt = await sqlDirect('SELECT count(*) n FROM mm_bookings WHERE project_id = $1', [P]); ok('exactly one booking row exists', cnt[0].n === '1');
+const qs = await sqlDirect('SELECT status FROM mm_quotes WHERE project_id = $1 ORDER BY status', [P]); ok('winning quote accepted, other rejected', qs.map(x => x.status).join() === 'accepted,rejected');
 
 // ---- immutability of accepted terms
 r = await call(`/api/v1/quotes/${QB}/versions`, 'POST', { estimate_type: 'binding', items: [{ description: 'Sneaky', quantity: 1, unit_price: '9999' }] }, coB); ok('accepted quote cannot be revised → 409 QUOTE_LOCKED', r.s === 409 && r.j.error.code === 'QUOTE_LOCKED');
@@ -125,11 +125,42 @@ r = await call(`/api/v1/bookings/${BK}/confirm`, 'POST', {}, custA); ok('custome
 r = await call(`/api/v1/bookings/${BK}/confirm`, 'POST', {}, coA); ok('other company cannot see booking → 404', r.s === 404);
 r = await call(`/api/v1/bookings/${BK}/complete`, 'POST', {}, coB); ok('pending → completed skipped → 409', r.s === 409);
 r = await call(`/api/v1/bookings/${BK}/confirm`, 'POST', {}, coB); ok('company confirms booking', r.s === 200 && r.j.data.status === 'confirmed');
-r = await call(`/api/v1/bookings`, 'GET', null, coB); ok('after confirmation provider sees customer contact', r.j.data[0].customer_email === 'cust.a@example.test');
-r = await call(`/api/v1/bookings/${BK}/start`, 'POST', {}, coB); ok('start → in_progress; project in_progress', r.j.data.status === 'in_progress' && (await sqlDirect('SELECT status FROM mm_projects'))[0].status === 'in_progress');
+// ---- crew & fleet (PRD-05)
+r = await call('/api/v1/crew', 'POST', { name: 'X', crew_role: 'pilot' }, coB); ok('crew validation (name, role)', r.s === 422 && r.j.error.details.length === 2);
+r = await call('/api/v1/crew', 'POST', { name: 'Maria Lopez', crew_role: 'crew_lead', phone: '+1 303 555 0100' }, coB); const C1 = r.j.data.id; ok('company adds crew member', r.s === 201);
+r = await call('/api/v1/crew', 'POST', { name: 'Sam Reed', crew_role: 'driver' }, coB); const C2 = r.j.data.id;
+r = await call('/api/v1/vehicles', 'POST', { label: '26 ft truck', registration: 'co-123', capacity_cuft: 1600 }, coB); const V1 = r.j.data.id; ok('company adds vehicle (plate normalised)', r.s === 201 && r.j.data.registration === 'CO-123');
+r = await call('/api/v1/vehicles', 'POST', { label: 'Dup', registration: 'CO-123' }, coB); ok('duplicate plate rejected → 409', r.s === 409);
+r = await call('/api/v1/crew', 'GET', null, coA); ok("company A cannot see company B's crew", r.s === 200 && r.j.data.length === 0);
+r = await call(`/api/v1/bookings/${BK}/assignments`, 'POST', { crew_ids: [C1] }, coA); ok('other company cannot assign to this booking → 404', r.s === 404);
+const cAcrew = (await call('/api/v1/crew', 'POST', { name: 'A Person', crew_role: 'mover' }, coA)).j?.data?.id;
+r = await call(`/api/v1/bookings/${BK}/assignments`, 'POST', { crew_ids: [C1, cAcrew] }, coB); ok("cannot assign another company's crew → 422", r.s === 422);
+r = await call(`/api/v1/bookings/${BK}/assignments`, 'POST', { crew_ids: [C1, C2], vehicle_ids: [V1] }, coB); ok('assign 2 crew + 1 truck to confirmed booking', r.s === 201 && r.j.data.added === 2 + 1, JSON.stringify(r.j));
+r = await call(`/api/v1/bookings/${BK}/assignments`, 'POST', { crew_ids: [C1], vehicle_ids: [V1] }, coB); ok('re-assigning same resources is a no-op (no duplicates)', r.s === 201 && r.j.data.added === 0);
+r = await call(`/api/v1/bookings/${BK}/assignments`, 'GET', null, custA); ok('customer sees first names + truck type only (no phone/plate)', r.j.data.length === 3 && !JSON.stringify(r.j.data).includes('555') && !JSON.stringify(r.j.data).includes('CO-123') && r.j.data.some(x => x.crew_name === 'Maria'));
+r = await call(`/api/v1/bookings/${BK}/assignments`, 'POST', { crew_ids: [C2] }, custA); ok('customer cannot assign crew → 403', r.s === 403);
+r = await call(`/api/v1/vehicles/${V1}/status`, 'POST', { status: 'maintenance' }, coB); ok('truck put in maintenance', r.j.data.status === 'maintenance');
+r = await call('/api/v1/schedule', 'GET', null, coB); ok('company schedule lists the 3 assignments on the move date', r.j.data.length === 3 && r.j.data[0].work_date === '2030-06-15');
+// conflict: second confirmed booking same date for company B
+{ const P3 = (await call('/api/v1/projects', 'POST', { project_type: 'local', requested_move_date: '2030-06-15' }, custB)).j.data.id;
+  await call(`/api/v1/projects/${P3}/addresses`, 'POST', { address_type: 'origin', line1: '5 Oak St', city: 'Denver', region: 'CO', postal_code: '80203' }, custB);
+  await call(`/api/v1/projects/${P3}/addresses`, 'POST', { address_type: 'destination', line1: '7 Pine St', city: 'Boulder', region: 'CO', postal_code: '80301' }, custB);
+  await call(`/api/v1/projects/${P3}/submit`, 'POST', {}, custB);
+  const q3 = await call(`/api/v1/opportunities/${P3}/quotes`, 'POST', { estimate_type: 'binding', items: [{ description: 'Local move', quantity: 1, unit_price: '500' }] }, coB);
+  const b3 = await call(`/api/v1/quote-versions/${q3.j.data.version.id}/accept`, 'POST', { accept_terms: true }, custB);
+  const BK3 = b3.j.data.id;
+  r = await call(`/api/v1/bookings/${BK3}/assignments`, 'POST', { crew_ids: [C1] }, coB); ok('cannot assign before booking is confirmed → 409', r.s === 409 && r.j.error.code === 'BOOKING_NOT_CONFIRMED');
+  await call(`/api/v1/bookings/${BK3}/confirm`, 'POST', {}, coB);
+  r = await call(`/api/v1/bookings/${BK3}/assignments`, 'POST', { crew_ids: [C1] }, coB); ok('same crew member same day on another job → 409 RESOURCE_CONFLICT naming the clash', r.s === 409 && r.j.error.code === 'RESOURCE_CONFLICT' && r.j.error.message.includes('Maria Lopez'));
+  r = await call(`/api/v1/bookings/${BK3}/assignments`, 'POST', { vehicle_ids: [V1] }, coB); ok('truck in maintenance cannot be assigned → 422', r.s === 422);
+  r = await call(`/api/v1/bookings/${BK3}/cancel`, 'POST', { reason: 'Customer changed plans' }, custB); ok('second booking cancelled', r.j.data.status === 'cancelled');
+}
+await call(`/api/v1/vehicles/${V1}/status`, 'POST', { status: 'active' }, coB);
+r = await call(`/api/v1/bookings`, 'GET', null, coB); ok('after confirmation provider sees customer contact', r.j.data.find(x => x.id === BK).customer_email === 'cust.a@example.test');
+r = await call(`/api/v1/bookings/${BK}/start`, 'POST', {}, coB); ok('start → in_progress; project in_progress', r.j.data.status === 'in_progress' && (await sqlDirect('SELECT status FROM mm_projects WHERE id = $1', [P]))[0].status === 'in_progress');
 r = await call(`/api/v1/bookings/${BK}/cancel`, 'POST', { reason: 'test' }, custA); ok('cannot cancel a move in progress → 409', r.s === 409);
-r = await call(`/api/v1/bookings/${BK}/complete`, 'POST', {}, coB); ok('complete → project completed', r.j.data.status === 'completed' && (await sqlDirect('SELECT status FROM mm_projects'))[0].status === 'completed');
-const hist = await sqlDirect('SELECT new_status FROM mm_project_status_history ORDER BY created_at'); ok('full project status history recorded', hist.map(x => x.new_status).join('>') === 'draft>submitted>quoting>booked>in_progress>completed', hist.map(x => x.new_status).join('>'));
+r = await call(`/api/v1/bookings/${BK}/complete`, 'POST', {}, coB); ok('complete → project completed', r.j.data.status === 'completed' && (await sqlDirect('SELECT status FROM mm_projects WHERE id = $1', [P]))[0].status === 'completed');
+const hist = await sqlDirect('SELECT new_status FROM mm_project_status_history WHERE project_id = $1 ORDER BY created_at', [P]); ok('full project status history recorded', hist.map(x => x.new_status).join('>') === 'draft>submitted>quoting>booked>in_progress>completed', hist.map(x => x.new_status).join('>'));
 const aud = await sqlDirect("SELECT count(*) n FROM mm_audit WHERE action LIKE 'quote.%' OR action LIKE 'booking.%' OR action LIKE 'project.%'"); ok('audit log captured lifecycle events', Number(aud[0].n) >= 8);
 
 // ---- cancellation path on a second project
