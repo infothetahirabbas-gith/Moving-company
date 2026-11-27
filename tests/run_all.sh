@@ -7,4 +7,5 @@ pkill -f neon_shim.py 2>/dev/null || true
 python3 tests/neon_shim.py 8799 & sleep 1
 psql -h /tmp/pg -p 5433 -U postgres -qc "DROP SCHEMA public CASCADE; CREATE SCHEMA public;" 2>/dev/null
 node tests/v1_e2e.mjs
+node tests/trace_check.mjs
 sh tests/run_ui.sh

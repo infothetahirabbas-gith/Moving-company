@@ -149,6 +149,14 @@ r = await call('/api/v1/nope', 'GET', null, custA); ok('unknown route → 404 st
 // cross-origin write blocked
 r = await mw(new Request(B + '/api/v1/projects', { method: 'POST', headers: { 'content-type': 'application/json', origin: 'https://evil.test', cookie: custA }, body: '{}' })); ok('cross-origin write blocked → 403', r.status === 403);
 
+// ---- integration registry (INTG-OPS-01)
+r = await call('/api/v1/admin/integrations', 'GET', null, adm); ok('integration registry lists 5 providers with owner + fallback', r.s === 200 && r.j.data.length === 5 && r.j.data.every(i => i.owner && i.fallback));
+r = await call('/api/v1/admin/integrations', 'GET', null, custA); ok('registry is admin-only', r.s === 401);
+r = await call('/api/v1/admin/integrations/neon/health-check', 'POST', {}, adm); ok('database health check → active', r.j.data.status === 'active' && r.j.data.ok === true);
+r = await call('/api/v1/admin/integrations/stripe/health-check', 'POST', {}, adm); ok('unconfigured provider reported as planned (no fake success)', r.j.data.status === 'planned' && /not set/.test(r.j.data.detail));
+r = await call('/api/v1/admin/integrations/resend/suspend', 'POST', { reason: 'test' }, adm); ok('admin can suspend an integration', r.j.data.status === 'suspended');
+r = await call('/api/v1/admin/integrations/resend', 'GET', null, adm); ok('integration events recorded (health checks + suspension)', r.j.data.events.length >= 1 && r.j.data.events[0].event === 'suspend');
+r = await call('/api/v1/admin/integrations/nope/health-check', 'POST', {}, adm); ok('unknown integration → 404', r.s === 404);
 console.log(results.join('\n'));
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
