@@ -49,6 +49,14 @@ After every SEV-1/2, write down what happened, how it was found, impact, fix and
 ## 6. Backups and recovery
 - **Neon free tier** keeps point-in-time history for a limited window (check your plan in the Neon console). To restore: Neon console → Branches → *Restore* to a timestamp, or create a branch at that time and point `DATABASE_URL` at it.
 - **Manual export** before risky changes: Neon console → SQL editor, or `pg_dump "$DATABASE_URL" > backup.sql` from a machine with Postgres tools.
+- **Verified backup drill (DR-01 §22):** `sh scripts/backup_and_verify.sh` (needs `DATABASE_URL` and an empty `SCRATCH_URL`, such as a Neon branch). It dumps the database, restores it into the scratch database, compares every table's row count and checks foreign keys. It refuses to run if both URLs are the same. Backups go to `backups/`, which is git-ignored and must never be committed.
+
+**Restore log** (add a line after every drill):
+| Date (UTC) | Source | Result | Tables | Rows matched | Duration | By |
+|---|---|---|---|---|---|---|
+| 2026-11-27 | Local test DB (Postgres 16) | ✅ verified | 21 | all | < 5 s | script |
+| _pending_ | Production Neon | — | — | — | — | owner (needs your Neon access) |
+
 - The RPO 15 min / RTO 4 h targets in the specs are **targets only**. They have not been tested here. A restore test should be done and recorded before public launch.
 
 ## 7. Run the tests locally
@@ -59,6 +67,17 @@ After every SEV-1/2, write down what happened, how it was found, impact, fix and
 sh tests/run_all.sh
 ```
 `tests/neon_shim.py` imitates Neon's HTTPS `/sql` endpoint on top of real Postgres, so the same middleware code that runs on Vercel is tested.
+
+## 7b. Integrations (INTG-OPS-01)
+Every outside service is listed in the **integration registry** (`mm_integrations`, shown on `/super-admin/data/` → Integrations) with its purpose, owner, fallback and secret name. *Check now* runs a free, read-only health check, and each result is stored in `mm_integration_events`. A service whose key isn't set shows **planned**, never a fake "active". Suspending an integration is recorded in the audit log.
+
+| Provider | If it fails |
+|---|---|
+| Neon | Site shows errors on account pages; restore per §6 |
+| Resend | Emails skipped and logged; password reset tells users to contact support |
+| Stripe *(not built)* | Payment arranged directly with mover |
+| Google Maps *(not built)* | 55-city distance estimate; manual address entry |
+| Vercel | Promote previous deployment (§5) |
 
 ## 8. Not in place yet (needs accounts, money or a team)
 Terraform/IaC, Docker/containers, separate staging environment with its own database, Redis/queues/workers, WebSockets, Sentry/Grafana/Prometheus/OpenTelemetry, WAF beyond Vercel's defaults, MFA for admin, row-level security in Postgres, 24/7 on-call, load testing at 1k–10k users, multi-region DR, Stripe payments and ledger, KYC, SMS/WhatsApp, eight separately deployed front-ends. Each is described in the specs. None should be claimed as live until it is.

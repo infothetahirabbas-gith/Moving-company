@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0 — 2026-11-27 (asset V14)
+### Added
+- **Integration registry** (INTG-OPS-01): `/api/v1/admin/integrations` with free health checks, event history, suspend/activate. Integrations panel on `/super-admin/data/`.
+- **Backup and restore drill** (DR-01): `scripts/backup_and_verify.sh`, verified locally. Restore log in the runbook.
+- **Traceability matrix** (MM-TRACE-01): `docs/TRACEABILITY.md` generated from `docs/traceability.json`; the CI check fails if a cited test is missing.
+- 7 new API tests (73 total).
+
 Semantic versioning (REL-01 §6.2). Asset version `V` in `build.js` changes with every release.
 
 ## 1.0.0 — 2026-11-27 (asset V13)
