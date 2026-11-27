@@ -19,6 +19,11 @@ const SCHEMA = [
   `CREATE UNIQUE INDEX IF NOT EXISTS uq_booking_active_project ON mm_bookings(project_id) WHERE status <> 'cancelled'`,
   `CREATE TABLE IF NOT EXISTS mm_booking_status_history (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), booking_id UUID NOT NULL REFERENCES mm_bookings(id), old_status TEXT, new_status TEXT NOT NULL, changed_by INT, reason TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
   `CREATE TABLE IF NOT EXISTS mm_idempotency (user_id INT NOT NULL, idem_key TEXT NOT NULL, route TEXT NOT NULL, fingerprint TEXT NOT NULL, response JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), PRIMARY KEY (user_id, idem_key))`,
+  `CREATE TABLE IF NOT EXISTS mm_crew (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), provider_id UUID NOT NULL REFERENCES mm_providers(id), name TEXT NOT NULL, crew_role TEXT NOT NULL CHECK (crew_role IN ('mover','driver','crew_lead','packer')), phone TEXT, status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','inactive')), created_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
+  `CREATE TABLE IF NOT EXISTS mm_vehicles (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), provider_id UUID NOT NULL REFERENCES mm_providers(id), label TEXT NOT NULL, registration TEXT NOT NULL, capacity_cuft INT CHECK (capacity_cuft IS NULL OR capacity_cuft BETWEEN 50 AND 6000), status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','maintenance','inactive')), created_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE (provider_id, registration))`,
+  `CREATE TABLE IF NOT EXISTS mm_assignments (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), booking_id UUID NOT NULL REFERENCES mm_bookings(id), provider_id UUID NOT NULL REFERENCES mm_providers(id), crew_id UUID REFERENCES mm_crew(id), vehicle_id UUID REFERENCES mm_vehicles(id), work_date DATE NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), CHECK ((crew_id IS NULL) <> (vehicle_id IS NULL)))`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_crew_day ON mm_assignments(crew_id, work_date) WHERE crew_id IS NOT NULL`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_vehicle_day ON mm_assignments(vehicle_id, work_date) WHERE vehicle_id IS NOT NULL`,
   `CREATE TABLE IF NOT EXISTS mm_integrations (id TEXT PRIMARY KEY, provider TEXT NOT NULL, category TEXT NOT NULL, purpose TEXT NOT NULL, env_key TEXT, status TEXT NOT NULL DEFAULT 'planned' CHECK (status IN ('planned','configuring','active','degraded','suspended','failed','retired')), owner TEXT NOT NULL DEFAULT 'Platform owner', fallback TEXT NOT NULL, docs_url TEXT, timeout_ms INT NOT NULL DEFAULT 10000, last_check_at TIMESTAMPTZ, last_ok_at TIMESTAMPTZ, last_error TEXT, updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
   `INSERT INTO mm_integrations (id, provider, category, purpose, env_key, fallback, docs_url) VALUES
     ('neon','Neon Postgres','Database','Primary transactional database','DATABASE_URL','Restore from Neon point-in-time history (docs/RUNBOOK.md §6)','https://neon.tech/docs'),
@@ -236,6 +241,7 @@ export function makeV1(deps) {
         await sql("UPDATE mm_quotes SET status = 'rejected' WHERE project_id = $1 AND status = 'issued'", [pr.id]);
         const bk = await sql("UPDATE mm_bookings SET status = 'cancelled', updated_at = now() WHERE project_id = $1 AND status IN ('pending','confirmed') RETURNING id, status", [pr.id]);
         for (const b of bk) await sql("INSERT INTO mm_booking_status_history (booking_id, old_status, new_status, changed_by, reason) VALUES ($1, 'active', 'cancelled', $2, $3)", [b.id, s.uid, reason]);
+        if (bk.length) await sql('DELETE FROM mm_assignments WHERE booking_id = ANY($1::uuid[])', ['{' + bk.map(b => b.id).join(',') + '}']);
         await audit(s.uid, s.email, 'project.cancelled', pr.project_number);
         return out(u);
       }
@@ -288,6 +294,33 @@ export function makeV1(deps) {
       const mine = b && (String(b.customer_user_id) === String(s.uid) || (pv && b.provider_id === pv.id));
       if (!mine) throw notFound();
       if (!sub && m === 'GET') return out(b);
+      if (sub === 'assignments') {
+        if (m === 'GET') return out(await sql(`SELECT x.id, x.work_date, c.name AS crew_name, c.crew_role, v.label AS vehicle_label, v.registration FROM mm_assignments x LEFT JOIN mm_crew c ON c.id = x.crew_id LEFT JOIN mm_vehicles v ON v.id = x.vehicle_id WHERE x.booking_id = $1 ORDER BY v.label NULLS FIRST, c.name`, [b.id]).then(rows => pv && b.provider_id === pv.id ? rows : rows.map(r => ({ crew_role: r.crew_role, crew_name: r.crew_name ? r.crew_name.split(' ')[0] : null, vehicle_label: r.vehicle_label, work_date: r.work_date })))); // customer sees first names + truck type only
+        if (!(pv && b.provider_id === pv.id)) throw forbidden('Only the moving company can assign crew and vehicles.');
+        if (m === 'POST') {
+          if (!['confirmed', 'in_progress'].includes(b.status)) throw new ApiError(409, 'BOOKING_NOT_CONFIRMED', 'Confirm the booking before assigning crew and vehicles.');
+          if (!b.scheduled_date) throw new ApiError(422, 'NO_DATE', 'This booking has no move date.');
+          const crew = [...new Set((Array.isArray(body.crew_ids) ? body.crew_ids : []).filter(isUuid))].slice(0, 30), veh = [...new Set((Array.isArray(body.vehicle_ids) ? body.vehicle_ids : []).filter(isUuid))].slice(0, 10);
+          if (!crew.length && !veh.length) throw bad('Choose at least one crew member or vehicle.');
+          const ok = await sql(`SELECT 'c' AS k, id FROM mm_crew WHERE provider_id = $1 AND status = 'active' AND id = ANY($2::uuid[]) UNION ALL SELECT 'v', id FROM mm_vehicles WHERE provider_id = $1 AND status = 'active' AND id = ANY($3::uuid[])`, [pv.id, '{' + crew.join(',') + '}', '{' + veh.join(',') + '}']);
+          if (ok.length !== crew.length + veh.length) throw bad('Some crew or vehicles are not yours or are not active (inactive or in maintenance).');
+          // Conflict check with names (friendly message); the unique indexes enforce it under concurrency too.
+          const clash = await sql(`SELECT coalesce(c.name, v.label || ' ' || v.registration) AS who, b2.booking_number FROM mm_assignments x JOIN mm_bookings b2 ON b2.id = x.booking_id LEFT JOIN mm_crew c ON c.id = x.crew_id LEFT JOIN mm_vehicles v ON v.id = x.vehicle_id
+            WHERE x.work_date = $1 AND x.booking_id <> $2 AND (x.crew_id = ANY($3::uuid[]) OR x.vehicle_id = ANY($4::uuid[]))`, [b.scheduled_date, b.id, '{' + crew.join(',') + '}', '{' + veh.join(',') + '}']);
+          if (clash.length) throw new ApiError(409, 'RESOURCE_CONFLICT', 'Already booked that day: ' + clash.map(c => `${c.who} (${c.booking_number})`).join(', '), clash.map(c => ({ field: 'resource', message: `${c.who} is on ${c.booking_number}` })));
+          const rows = await sql(`WITH ins AS (INSERT INTO mm_assignments (booking_id, provider_id, crew_id, vehicle_id, work_date)
+              SELECT $1::uuid, $2::uuid, u, NULL::uuid, $3::date FROM unnest($4::uuid[]) u WHERE NOT EXISTS (SELECT 1 FROM mm_assignments WHERE booking_id = $1::uuid AND crew_id = u)
+              UNION ALL SELECT $1::uuid, $2::uuid, NULL::uuid, u, $3::date FROM unnest($5::uuid[]) u WHERE NOT EXISTS (SELECT 1 FROM mm_assignments WHERE booking_id = $1::uuid AND vehicle_id = u) RETURNING id) SELECT count(*)::int AS n FROM ins`,
+            [b.id, pv.id, b.scheduled_date, '{' + crew.join(',') + '}', '{' + veh.join(',') + '}']);
+          await audit(s.uid, s.email, 'booking.assigned', b.booking_number + ' +' + rows[0].n);
+          return out({ added: Number(rows[0].n) }, 201);
+        }
+        if (m === 'DELETE') {
+          const xid = url_q(req, 'id'); if (!isUuid(xid)) throw notFound();
+          if (b.status === 'completed') throw new ApiError(409, 'BOOKING_CLOSED', 'Completed bookings keep their assignment history.');
+          await sql('DELETE FROM mm_assignments WHERE id = $1 AND booking_id = $2', [xid, b.id]); return out({ deleted: true });
+        }
+      }
       const to = { confirm: 'confirmed', start: 'in_progress', complete: 'completed', cancel: 'cancelled' }[sub];
       if (!to || m !== 'POST') throw notFound();
       const byProvider = pv && b.provider_id === pv.id;
@@ -298,6 +331,7 @@ export function makeV1(deps) {
       const [u] = await sql('UPDATE mm_bookings SET status = $1, updated_at = now() WHERE id = $2 AND status = $3 RETURNING *', [to, b.id, b.status]);
       if (!u) throw new ApiError(409, 'CONCURRENT_UPDATE', 'This booking changed. Refresh and try again.');
       await sql('INSERT INTO mm_booking_status_history (booking_id, old_status, new_status, changed_by, reason) VALUES ($1,$2,$3,$4,$5)', [b.id, b.status, to, s.uid, reason]);
+      if (to === 'cancelled') await sql('DELETE FROM mm_assignments WHERE booking_id = $1', [b.id]); // free crew and trucks for other jobs
       const projTo = { in_progress: 'in_progress', completed: 'completed', cancelled: 'quoting' }[to];
       if (projTo) { const [pr] = await sql('SELECT * FROM mm_projects WHERE id = $1', [b.pid]); if (projTo === 'quoting') { await sql("UPDATE mm_projects SET status = 'quoting', version = version + 1, updated_at = now() WHERE id = $1 AND status = 'booked'", [pr.id]); await sql("INSERT INTO mm_project_status_history (project_id, old_status, new_status, changed_by, reason) VALUES ($1, 'booked', 'quoting', $2, $3)", [pr.id, s.uid, 'Booking cancelled: ' + reason]); } else await moveProject(pr, projTo, s.uid, 'Booking ' + to); }
       await audit(s.uid, s.email, 'booking.' + to, u.booking_number);
@@ -330,6 +364,49 @@ export function makeV1(deps) {
       }
     }
 
+    // ===== crew & fleet (PRD-05) =====
+    if (a === 'crew') {
+      if (!id && m === 'GET') return out(await sql("SELECT c.*, (SELECT count(*)::int FROM mm_assignments x WHERE x.crew_id = c.id AND x.work_date >= CURRENT_DATE) AS upcoming_jobs FROM mm_crew c WHERE c.provider_id = $1 ORDER BY c.status, c.name", [pv.id]));
+      if (!id && m === 'POST') {
+        const name = str(body.name, 120), role = str(body.crew_role, 20), phone = str(body.phone, 30), errs = [];
+        if (name.length < 2) errs.push({ field: 'name', message: 'Enter the name.' });
+        if (!['mover', 'driver', 'crew_lead', 'packer'].includes(role)) errs.push({ field: 'crew_role', message: 'Choose a role.' });
+        if (phone && !/^[+\d][\d\s().-]{6,}$/.test(phone)) errs.push({ field: 'phone', message: 'Enter a valid phone number.' });
+        if (errs.length) throw bad('Please fix the highlighted fields.', errs);
+        const [n] = await sql('SELECT count(*)::int AS n FROM mm_crew WHERE provider_id = $1', [pv.id]); if (Number(n.n) >= 500) throw new ApiError(422, 'LIMIT_REACHED', 'Crew list is limited to 500 people.');
+        const [c] = await sql('INSERT INTO mm_crew (provider_id, name, crew_role, phone) VALUES ($1,$2,$3,$4) RETURNING *', [pv.id, name, role, phone || null]);
+        await audit(s.uid, s.email, 'crew.added', name); return out(c, 201);
+      }
+      if (isUuid(id) && (sub === 'deactivate' || sub === 'activate') && m === 'POST') {
+        const [c] = await sql('UPDATE mm_crew SET status = $1 WHERE id = $2 AND provider_id = $3 RETURNING *', [sub === 'activate' ? 'active' : 'inactive', id, pv.id]); if (!c) throw notFound();
+        return out(c);
+      }
+      throw notFound();
+    }
+    if (a === 'vehicles') {
+      if (!id && m === 'GET') return out(await sql("SELECT v.*, (SELECT count(*)::int FROM mm_assignments x WHERE x.vehicle_id = v.id AND x.work_date >= CURRENT_DATE) AS upcoming_jobs FROM mm_vehicles v WHERE v.provider_id = $1 ORDER BY v.status, v.label", [pv.id]));
+      if (!id && m === 'POST') {
+        const label = str(body.label, 80), reg = str(body.registration, 20).toUpperCase(), cap = body.capacity_cuft === '' || body.capacity_cuft == null ? null : parseInt(body.capacity_cuft, 10), errs = [];
+        if (label.length < 2) errs.push({ field: 'label', message: 'Name the vehicle, e.g. "26 ft truck".' });
+        if (!/^[A-Z0-9 -]{2,12}$/.test(reg)) errs.push({ field: 'registration', message: 'Enter the plate number.' });
+        if (cap !== null && !(cap >= 50 && cap <= 6000)) errs.push({ field: 'capacity_cuft', message: 'Capacity must be 50–6000 cu ft.' });
+        if (errs.length) throw bad('Please fix the highlighted fields.', errs);
+        const [dupV] = await sql('SELECT 1 FROM mm_vehicles WHERE provider_id = $1 AND registration = $2', [pv.id, reg]); if (dupV) throw new ApiError(409, 'DUPLICATE_VEHICLE', 'A vehicle with this plate is already in your fleet.');
+        const [v] = await sql('INSERT INTO mm_vehicles (provider_id, label, registration, capacity_cuft) VALUES ($1,$2,$3,$4) RETURNING *', [pv.id, label, reg, cap]);
+        await audit(s.uid, s.email, 'vehicle.added', reg); return out(v, 201);
+      }
+      if (isUuid(id) && sub === 'status' && m === 'POST') {
+        const st = str(body.status, 20); if (!['active', 'maintenance', 'inactive'].includes(st)) throw bad('Choose active, maintenance or inactive.');
+        const [v] = await sql('UPDATE mm_vehicles SET status = $1 WHERE id = $2 AND provider_id = $3 RETURNING *', [st, id, pv.id]); if (!v) throw notFound();
+        return out(v);
+      }
+      throw notFound();
+    }
+    if (a === 'schedule' && m === 'GET') {
+      return out(await sql(`SELECT x.id, x.work_date, b.booking_number, b.status AS booking_status, c.name AS crew_name, c.crew_role, v.label AS vehicle_label, v.registration
+        FROM mm_assignments x JOIN mm_bookings b ON b.id = x.booking_id LEFT JOIN mm_crew c ON c.id = x.crew_id LEFT JOIN mm_vehicles v ON v.id = x.vehicle_id
+        WHERE x.provider_id = $1 AND x.work_date >= CURRENT_DATE - 7 ORDER BY x.work_date, b.booking_number LIMIT 500`, [pv.id]));
+    }
     if (a === 'opportunities' && m === 'GET') {
       if (pv.verification_status !== 'verified') return out([], 200, { notice: 'Opportunities appear once your identity, business and insurance checks are approved.' });
       const [flag] = await sql("SELECT enabled FROM mm_feature_flags WHERE flag_key = 'marketplace_quotes'");
